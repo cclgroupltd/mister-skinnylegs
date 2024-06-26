@@ -16,6 +16,6 @@ def example_artifact2(profile: ChromiumProfileFolder, log_func: Callable[[str], 
 
 
 __artifacts__ = (
-    ArtifactSpec("Example artifact 1", "Example which returns all URLs from history", example_artifact1),
-    ArtifactSpec("Example artifact 2", "Example which returns all hosts for local storage", example_artifact2)
+    ArtifactSpec("Example artifact 1", "Example which returns all URLs from history", "0.0.1", example_artifact1),
+    ArtifactSpec("Example artifact 2", "Example which returns all hosts for local storage", "0.0.1", example_artifact2)
 )

@@ -39,7 +39,11 @@ class MisterSkinnylegs:
     async def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
             result = spec.method(profile, self._log_callback)
-            return result
+            return {
+                "artifact_name": spec.name,
+                "artifact_version": spec.version,
+                "artifact_description": spec.description,
+                "result": result}
 
     async def run_all(self):
         tasks = (self._run_artifact(spec) for spec, path in self.artifacts)
