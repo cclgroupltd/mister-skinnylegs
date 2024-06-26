@@ -3,7 +3,7 @@ from collections.abc import Callable
 from ccl_chromium_reader import ChromiumProfileFolder
 import typing
 
-JsonableType = typing.Union[None, int, str, bool, list["JsonableType"], dict[str, "JsonableType"]]
+JsonableType = typing.Union[None, int, float, str, bool, list["JsonableType"], dict[str, "JsonableType"]]
 
 
 @dataclass(frozen=True)

@@ -3,6 +3,7 @@ import sys
 import pathlib
 import typing
 import collections.abc as colabc
+import asyncio
 from util.plugin_loader import PluginLoader
 from util.artifact_utils import ArtifactResult, ArtifactSpec
 
@@ -10,12 +11,13 @@ from ccl_chromium_reader import ChromiumProfileFolder
 
 PLUGIN_PATH = pathlib.Path(__file__).resolve().parent / pathlib.Path("plugins")
 
-"""
-TODO:
-
-- Logging via a callback passed to the plugins
-- Make everything async
-
+BANNER = """
+╔╦╗┬┌─┐┌┬┐┌─┐┬─┐            
+║║║│└─┐ │ ├┤ ├┬┘            
+╩ ╩┴└─┘ ┴ └─┘┴└─            
+╔═╗┬┌─┬┌┐┌┌┐┌┬ ┬┬  ┌─┐┌─┐┌─┐
+╚═╗├┴┐│││││││└┬┘│  ├┤ │ ┬└─┐
+╚═╝┴ ┴┴┘└┘┘└┘ ┴ ┴─┘└─┘└─┘└─┘
 """
 
 
@@ -34,17 +36,17 @@ class MisterSkinnylegs:
 
         self._log_callback = log_callback or MisterSkinnylegs.log_fallback
 
-    def _run_artifact(self, spec: ArtifactSpec):
+    async def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
             result = spec.method(profile, self._log_callback)
             return result
 
-    def run_all(self):
-        for spec, path in self.artifacts:
-            result = self._run_artifact(spec)
-            yield result
+    async def run_all(self):
+        tasks = (self._run_artifact(spec) for spec, path in self.artifacts)
+        for coro in asyncio.as_completed(tasks):
+            yield await coro
 
-    def run_one(self, artifact_name: str):
+    async def run_one(self, artifact_name: str):
         spec, path = self._plugin_loader[artifact_name]
         result = self._run_artifact(spec)
         return result
@@ -62,13 +64,13 @@ class MisterSkinnylegs:
         print(f"Log:\t{message}")
 
 
+async def main(args):
+    print(BANNER)
 
-def main(args):
     profile_input_path = pathlib.Path(args[0])
     mr_sl = MisterSkinnylegs(PLUGIN_PATH, profile_input_path)
 
-    print("Working with profile folder: ")
-    print(mr_sl.profile_folder)
+    print(f"Working with profile folder: {mr_sl.profile_folder}")
     print()
 
     print("Plugins loaded:")
@@ -76,13 +78,9 @@ def main(args):
     print(*(f"{spec.name}  -  {path.name}" for spec, path in mr_sl.artifacts), sep="\n")
 
     print()
-    print("Running all processes")
-    for result in mr_sl.run_all():
-        print(json.dumps(result.result))
-
-    print("Running Example artifact 2")
-    print(json.dumps(mr_sl.run_one("Example artifact 2").result))
+    async for result in mr_sl.run_all():
+        print(result)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    asyncio.run(main(sys.argv[1:]))
