@@ -15,6 +15,6 @@ class ArtifactResult:
 class ArtifactSpec:
     name: str
     description: str
-    method: Callable[[ChromiumProfileFolder], ArtifactResult]
+    method: Callable[[ChromiumProfileFolder, Callable[[str], None]], ArtifactResult]
 
 

@@ -20,7 +20,11 @@ TODO:
 
 
 class MisterSkinnylegs:
-    def __init__(self, plugin_path: pathlib.Path, profile_path: pathlib.Path):
+    def __init__(
+            self,
+            plugin_path: pathlib.Path,
+            profile_path: pathlib.Path,
+            log_callback: typing.Optional[colabc.Callable[[str], None]]=None):
         self._plugin_loader = PluginLoader(plugin_path)
 
         if not profile_path.is_dir():
@@ -28,9 +32,11 @@ class MisterSkinnylegs:
 
         self._profile_folder_path = profile_path
 
+        self._log_callback = log_callback or MisterSkinnylegs.log_fallback
+
     def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
-            result = spec.method(profile)
+            result = spec.method(profile, self._log_callback)
             return result
 
     def run_all(self):
@@ -51,6 +57,9 @@ class MisterSkinnylegs:
     def profile_folder(self) -> pathlib.Path:
         return self._profile_folder_path
 
+    @staticmethod
+    def log_fallback(message: str):
+        print(f"Log:\t{message}")
 
 
 
