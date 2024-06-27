@@ -6,8 +6,13 @@ import collections.abc as colabc
 import asyncio
 from util.plugin_loader import PluginLoader
 from util.artifact_utils import ArtifactResult, ArtifactSpec
+from util.fs_utils import sanitize_filename
 
 from ccl_chromium_reader import ChromiumProfileFolder
+
+__version__ = "0.0.2"
+__description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
+__contact__ = "Alex Caithness"
 
 PLUGIN_PATH = pathlib.Path(__file__).resolve().parent / pathlib.Path("plugins")
 
@@ -39,12 +44,12 @@ class MisterSkinnylegs:
     async def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
             result = spec.function(profile, self._log_callback)
-            return {
+            return spec, {
                 "artifact_service": spec.service,
                 "artifact_name": spec.name,
                 "artifact_version": spec.version,
                 "artifact_description": spec.description,
-                "result": result}
+                "result": result.result}
 
     async def run_all(self):
         tasks = (self._run_artifact(spec) for spec, path in self.artifacts)
@@ -54,7 +59,7 @@ class MisterSkinnylegs:
     async def run_one(self, artifact_name: str):
         spec, path = self._plugin_loader[artifact_name]
         result = self._run_artifact(spec)
-        return result
+        return spec, result
 
     @property
     def artifacts(self) -> colabc.Iterable[tuple[ArtifactSpec, pathlib.Path]]:
@@ -70,10 +75,17 @@ class MisterSkinnylegs:
 
 
 async def main(args):
+    profile_input_path = pathlib.Path(args[0])
+    report_out_folder_path = pathlib.Path(args[1])
+
     print(BANNER)
 
-    profile_input_path = pathlib.Path(args[0])
     mr_sl = MisterSkinnylegs(PLUGIN_PATH, profile_input_path)
+
+    if report_out_folder_path.exists():
+        raise FileExistsError(f"Output folder {report_out_folder_path} already exists")
+
+    report_out_folder_path.mkdir(parents=True)
 
     print(f"Working with profile folder: {mr_sl.profile_folder}")
     print()
@@ -83,8 +95,24 @@ async def main(args):
     print(*(f"{spec.name}  -  {path.name}" for spec, path in mr_sl.artifacts), sep="\n")
 
     print()
-    async for result in mr_sl.run_all():
-        print(result)
+
+    # TODO replace fallback logging.
+
+    async for spec, result in mr_sl.run_all():
+        MisterSkinnylegs.log_fallback(f"Results acquired for {spec.name}")
+        if not result["result"]:
+            MisterSkinnylegs.log_fallback(f"{spec.name} had not results, skipping")
+            continue
+
+        out_dir_path = report_out_folder_path / sanitize_filename(spec.service)
+        out_dir_path.mkdir(exist_ok=True)
+        out_file_path = out_dir_path / (sanitize_filename(spec.name) + ".json")
+
+        MisterSkinnylegs.log_fallback(f"Generating output at {out_file_path}")
+
+        with out_file_path.open("xt", encoding="utf-8") as out:
+            json.dump(result, out)
+
 
 
 if __name__ == "__main__":
