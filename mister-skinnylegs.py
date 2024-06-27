@@ -38,8 +38,9 @@ class MisterSkinnylegs:
 
     async def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
-            result = spec.method(profile, self._log_callback)
+            result = spec.function(profile, self._log_callback)
             return {
+                "artifact_service": spec.service,
                 "artifact_name": spec.name,
                 "artifact_version": spec.version,
                 "artifact_description": spec.description,

@@ -1,9 +1,13 @@
+import typing
+
 from dataclasses import dataclass
 from collections.abc import Callable
 from ccl_chromium_reader import ChromiumProfileFolder
-import typing
+
 
 JsonableType = typing.Union[None, int, float, str, bool, list["JsonableType"], dict[str, "JsonableType"]]
+LogFunction = Callable[[str], None]
+ArtifactFunction = Callable[[ChromiumProfileFolder, LogFunction], "ArtifactResult"]
 
 
 @dataclass(frozen=True)
@@ -13,8 +17,9 @@ class ArtifactResult:
 
 @dataclass(frozen=True)
 class ArtifactSpec:
+    service: str
     name: str
     description: str
     version: str
-    method: Callable[[ChromiumProfileFolder, Callable[[str], None]], ArtifactResult]
+    function: ArtifactFunction
 
