@@ -1,4 +1,6 @@
+import csv
 import datetime
+import io
 import json
 import sys
 import pathlib
@@ -6,7 +8,7 @@ import typing
 import collections.abc as colabc
 import asyncio
 from util.plugin_loader import PluginLoader
-from util.artifact_utils import ArtifactResult, ArtifactSpec
+from util.artifact_utils import ArtifactResult, ArtifactSpec, ReportPresentation
 from util.fs_utils import sanitize_filename
 
 from ccl_chromium_reader import ChromiumProfileFolder
@@ -93,6 +95,18 @@ class SimpleLog:
         self._f.close()
 
 
+def write_csv(csv_out: typing.TextIO, result: list):
+    fields = []
+    for rec in result:
+        for k in rec.keys():
+            if k not in fields:
+                fields.append(k)
+
+    writer = csv.DictWriter(csv_out, fields)
+    writer.writeheader()
+    writer.writerows(result)
+
+
 async def main(args):
     profile_input_path = pathlib.Path(args[0])
     report_out_folder_path = pathlib.Path(args[1])
@@ -137,6 +151,11 @@ async def main(args):
 
         with out_file_path.open("xt", encoding="utf-8") as out:
             json.dump(result, out)
+        if spec.presentation == ReportPresentation.table:
+            csv_out_path = out_file_path.with_suffix(".csv")
+            log(f"Generating csv output at {csv_out_path}")
+            with csv_out_path.open("xt", encoding="utf-8", newline="") as csv_out:
+                write_csv(csv_out, result["result"])
 
 
 if __name__ == "__main__":
