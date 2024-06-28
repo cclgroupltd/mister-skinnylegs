@@ -38,6 +38,7 @@ class ArtifactSpec:
     version: str
     function: ArtifactFunction
     presentation: ReportPresentation = ReportPresentation.custom
+    citation: typing.Optional[str] = None
 
 
 class ArtifactStorageBinaryStream(abc.ABC):

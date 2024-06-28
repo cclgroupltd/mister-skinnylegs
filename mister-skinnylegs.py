@@ -188,7 +188,7 @@ async def main(args):
     async for spec, result in mr_sl.run_all():
         log(f"Results acquired for {spec.name}")
         if not result["result"]:
-            log(f"{spec.name} had not results, skipping")
+            log(f"{spec.name} had no results, skipping")
             continue
 
         out_dir_path = report_out_folder_path / sanitize_filename(spec.service)
@@ -206,7 +206,7 @@ async def main(args):
                 write_csv(csv_out, result["result"])
 
     log("")
-    log("Processes complete")
+    log("Processing complete")
     log("Mister Skinnylegs is going home...")
 
     log_file.close()
