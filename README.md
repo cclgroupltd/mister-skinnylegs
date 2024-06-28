@@ -58,3 +58,69 @@ py .\mister-skinnylegs.py "c:\Users\you\AppData\Local\Google\Chrome\User Data\Pr
 
 This will run every plugin found in the `plugins` folder against the profile
 folder, generating output in the output folder.
+
+## Contributing
+### Plugins
+Mister Skinnylegs plugins are represented by python modules placed in the
+`plugins` folder. The filenames for plugins should end with `_plugin.py`, 
+e.g., `cool_website_plugin.py`. Each plugin can contain functionality for
+processing multiple *artifacts*.
+
+Every plugin file must contain a module level variable named `__artifacts__`.
+This variable should point to an iterable (tuple is suggested) of 
+`ArtifactSpec` objects. E.g.,
+
+```python
+__artifacts__ = (
+    ArtifactSpec(
+        "Example Service",
+        "Example artifact 1",
+        "Description of this artifact goes here",
+        "0.1.0",
+        example_artifact1_func,
+        ReportPresentation.table
+    ),
+    ArtifactSpec(
+        "Example Service",
+        "Example artifact 2",
+        "Example which returns all hosts for local storage",
+        "0.1.0",
+        example_artifact2_func,
+        ReportPresentation.table
+    )
+)
+```
+
+`ArtifactSpec` objects describe an artifact that can be processed by the 
+plugin, and point to the function which provides the processing 
+functionality for that artifact.
+
+The plugin functions are required to have the following signature:
+
+```python
+def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+    ...
+```
+
+* The first argument will be the ChromiumProfileFolder passed to the 
+  function by the host which is used to access data stored by the browser.
+  More information on this class can be found in 
+  [the ccl_chromium_reader package](https://github.com/cclgroupltd/ccl_chromium_reader)
+* The second argument will be a logging callback function for the plugin
+  to use, which should be a function that takes a sing string argument which 
+  is the message to be logged
+* An object which implements the ArtifactStorage abstract base class. This
+  object can be used by the plugin to create writable streams which are can
+  be used to store data related to the output
+
+The function should return an `ArtifactResult` which holds the processed
+data to be passed back to the host. The result held by the returned object
+should be a Python data structure that can be JSON'd by the host. In the
+current version, the host will use the standard `json.dump` function 
+without custom encoding which means that the result should only contain
+dicts, lists, strings, floats, ints, bools and None (this may change in
+future versions where other common data-types, such as datetime.datetime,
+will be encoded in a standard way). 
+
+A minimal example of a plugin can be found in 
+[example_plugin_.py](plugins/example_plugin_.py) 
