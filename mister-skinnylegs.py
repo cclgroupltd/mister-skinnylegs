@@ -8,8 +8,8 @@ import typing
 import collections.abc as colabc
 import asyncio
 from util.plugin_loader import PluginLoader
-from util.artifact_utils import ArtifactResult, ArtifactSpec, ReportPresentation
-from util.fs_utils import sanitize_filename
+from util.artifact_utils import ArtifactResult, ArtifactSpec, ReportPresentation, LogFunction, ArtifactStorage
+from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
@@ -34,19 +34,21 @@ class MisterSkinnylegs:
             self,
             plugin_path: pathlib.Path,
             profile_path: pathlib.Path,
-            log_callback: typing.Optional[colabc.Callable[[str], None]]=None):
+            storage_maker_func: colabc.Callable[[ArtifactSpec], ArtifactStorage],
+            log_callback: typing.Optional[LogFunction]=None,
+            ):
         self._plugin_loader = PluginLoader(plugin_path)
 
         if not profile_path.is_dir():
             raise NotADirectoryError(profile_path)
 
         self._profile_folder_path = profile_path
-
+        self._storage_maker_func = storage_maker_func
         self._log_callback = log_callback or MisterSkinnylegs.log_fallback
 
     async def _run_artifact(self, spec: ArtifactSpec):
         with ChromiumProfileFolder(self._profile_folder_path) as profile:
-            result = spec.function(profile, self._log_callback)
+            result = spec.function(profile, self._log_callback, self._storage_maker_func(spec))
             return spec, {
                 "artifact_service": spec.service,
                 "artifact_name": spec.name,
@@ -82,7 +84,8 @@ class SimpleLog:
         self._f = out_path.open("xt", encoding="utf-8")
 
     def log_message(self, message: str):
-        formatted_message = f"{datetime.datetime.now()}\t{message.replace('\n', '\n\t')}"
+        caller_name = f"{sys._getframemodulename(1)}.{sys._getframe(1).f_code.co_name}"
+        formatted_message = f"{datetime.datetime.now()}\t{caller_name}\t{message.replace('\n', '\n\t')}"
         self._f.write(formatted_message)
         self._f.write("\n")
 
@@ -123,7 +126,13 @@ async def main(args):
     log_file = SimpleLog(report_out_folder_path / f"log_{datetime.datetime.now():%Y%m%d_%H%M%S}.log")
     log = log_file.log_message
 
-    mr_sl = MisterSkinnylegs(PLUGIN_PATH, profile_input_path, log_callback=log)
+    mr_sl = MisterSkinnylegs(
+        PLUGIN_PATH,
+        profile_input_path,
+        lambda s: ArtifactFileSystemStorage(
+            report_out_folder_path / sanitize_filename(spec.service),
+            sanitize_filename(s.name) + "_files"),
+        log_callback=log)
 
     log(f"Mister Skinnylegs v{__version__} is on the go!")
     log(f"Working with profile folder: {mr_sl.profile_folder}")

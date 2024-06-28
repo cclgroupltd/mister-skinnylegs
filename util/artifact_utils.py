@@ -1,5 +1,6 @@
 import typing
 import enum
+import abc
 
 from dataclasses import dataclass
 from collections.abc import Callable
@@ -8,7 +9,7 @@ from ccl_chromium_reader import ChromiumProfileFolder
 
 JsonableType = typing.Union[None, int, float, str, bool, list["JsonableType"], dict[str, "JsonableType"]]
 LogFunction = Callable[[str], None]
-ArtifactFunction = Callable[[ChromiumProfileFolder, LogFunction], "ArtifactResult"]
+ArtifactFunction = Callable[[ChromiumProfileFolder, LogFunction, "ArtifactStorage"], "ArtifactResult"]
 
 
 class ReportPresentation(enum.Enum):
@@ -37,4 +38,46 @@ class ArtifactSpec:
     version: str
     function: ArtifactFunction
     presentation: ReportPresentation = ReportPresentation.custom
+
+
+class ArtifactStorageBinaryStream(abc.ABC):
+    def write(self, data: bytes) -> int:
+        raise NotImplementedError()
+
+    def close(self) -> None:
+        raise NotImplementedError()
+
+    def get_file_location_reference(self) -> str:
+        raise NotImplementedError()
+
+    def __enter__(self) -> "ArtifactStorageBinaryStream":
+        raise NotImplementedError()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplementedError()
+
+
+class ArtifactStorageTextStream(abc.ABC):
+    def write(self, data: str) -> int:
+        raise NotImplementedError()
+
+    def close(self) -> None:
+        raise NotImplementedError()
+
+    def get_file_location_reference(self) -> str:
+        raise NotImplementedError()
+
+    def __enter__(self) -> "ArtifactStorageTextStream":
+        raise NotImplementedError()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplementedError()
+
+
+class ArtifactStorage(abc.ABC):
+    def get_binary_stream(self, file_name: str) -> ArtifactStorageBinaryStream:
+        raise NotImplementedError()
+
+    def get_text_stream(self, file_name: str) -> ArtifactStorageTextStream:
+        raise NotImplementedError()
 

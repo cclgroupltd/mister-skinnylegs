@@ -1,14 +1,16 @@
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation
+from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
 
 
-def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction) -> ArtifactResult:
+def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     log_func("Logging inside of example_artifact1")
-    result = ArtifactResult([{"id": rec.rec_id, "title": rec.title, "url": rec.url} for rec in profile.history.iter_history_records(None)])
+    result = ArtifactResult([
+        {"id": rec.rec_id, "title": rec.title, "url": rec.url} for rec in profile.history.iter_history_records(None)
+    ])
     return result
 
 
-def example_artifact2(profile: ChromiumProfileFolder, log_func: LogFunction) -> ArtifactResult:
+def example_artifact2(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     log_func("Logging inside of example_artifact2")
     result = ArtifactResult([{"host": rec} for rec in profile.iter_local_storage_hosts()])
     return result
