@@ -76,8 +76,20 @@ class ArtifactStorageTextStream(abc.ABC):
 
 class ArtifactStorage(abc.ABC):
     def get_binary_stream(self, file_name: str) -> ArtifactStorageBinaryStream:
+        """
+        Returns a ArtifactStorageBinaryStream which can be used by a plugin to store report data
+        :param file_name: the name of the file to be stored. This may be altered by the implementing class so the
+               ArtifactStorageBinaryStream should be used to get the final file location reference
+        :return: an object implementing ArtifactStorageBinaryStream
+        """
         raise NotImplementedError()
 
     def get_text_stream(self, file_name: str) -> ArtifactStorageTextStream:
+        """
+        Returns a ArtifactStorageTextStream which can be used by a plugin to store report data
+        :param file_name: the name of the file to be stored. This may be altered by the implementing class so the
+               ArtifactStorageTextStream should be used to get the final file location reference
+        :return: an object implementing ArtifactStorageTextStream
+        """
         raise NotImplementedError()
 

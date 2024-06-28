@@ -29,6 +29,9 @@ BANNER = """
 
 
 class MisterSkinnylegs:
+    """
+    Mister Skinnylegs is a plugin framework for website/web app artifacts stored by a browser.
+    """
     def __init__(
             self,
             plugin_path: pathlib.Path,
@@ -36,6 +39,16 @@ class MisterSkinnylegs:
             storage_maker_func: colabc.Callable[[ArtifactSpec], ArtifactStorage],
             log_callback: typing.Optional[LogFunction]=None,
             ):
+        """
+        Constructor
+
+        :param plugin_path: path to the folder of plugins .
+        :param profile_path: path to the (Chrome/Chromium) browser profile folder.
+        :param storage_maker_func: a function which takes an ArtifactSpec object and returns an object that
+               implements the ArtifactStorage interface.
+        :param log_callback: a callback function for logging. Should be a function that takes a single string
+               argument which is the message to be logged.
+        """
         self._plugin_loader = PluginLoader(plugin_path)
 
         if not profile_path.is_dir():
@@ -56,11 +69,18 @@ class MisterSkinnylegs:
                 "result": result.result}
 
     async def run_all(self):
+        """
+        Async generator function that runs all loaded plugins against the profile folder provided to the constructor
+        """
         tasks = (self._run_artifact(spec) for spec, path in self.artifacts)
         for coro in asyncio.as_completed(tasks):
             yield await coro
 
     async def run_one(self, artifact_name: str):
+        """
+        Asynchronously runs the artifact with the given name
+        :param artifact_name:
+        """
         spec, path = self._plugin_loader[artifact_name]
         result = self._run_artifact(spec)
         return spec, result
@@ -79,10 +99,24 @@ class MisterSkinnylegs:
 
 
 class SimpleLog:
+    """
+    A simple log class designed to be passed around.
+    """
+
     def __init__(self, out_path: pathlib.Path):
+        """
+        Constructor. Creates a log file at the given path. Fails if the file already exists.
+
+        :param out_path: File path for the log file. Must not already exist.
+        """
         self._f = out_path.open("xt", encoding="utf-8")
 
-    def log_message(self, message: str):
+    def log_message(self, message: str) -> None:
+        """
+        Logs a message. The logged message includes a timestamp and the calling module + function
+
+        :param message: The message to log, as a string.
+        """
         caller_name = f"{sys._getframemodulename(1)}.{sys._getframe(1).f_code.co_name}"
         formatted_message = f"{datetime.datetime.now()}\t{caller_name}\t{message.replace('\n', '\n\t')}"
         self._f.write(formatted_message)
@@ -90,11 +124,17 @@ class SimpleLog:
 
         print(formatted_message.encode(sys.stdout.encoding, "replace").decode(sys.stdout.encoding))
 
+    def close(self) -> None:
+        """
+        Close the log file.
+        """
+        self._f.close()
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._f.close()
+        self.close()
 
 
 def write_csv(csv_out: typing.TextIO, result: list):
@@ -165,6 +205,14 @@ async def main(args):
             with csv_out_path.open("xt", encoding="utf-8", newline="") as csv_out:
                 write_csv(csv_out, result["result"])
 
+    log("")
+    log("Processes complete")
+    log("Mister Skinnylegs is going home...")
+
+    log_file.close()
 
 if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print(f"USAGE: {pathlib.Path(sys.argv[0]).name} <profile folder path> <output folder path>")
+        exit(1)
     asyncio.run(main(sys.argv[1:]))
