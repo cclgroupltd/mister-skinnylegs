@@ -1,6 +1,5 @@
 import csv
 import datetime
-import io
 import json
 import sys
 import pathlib
@@ -13,7 +12,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
 __contact__ = "Alex Caithness"
 
