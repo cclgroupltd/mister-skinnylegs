@@ -116,8 +116,8 @@ def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction, sto
 The function should return an `ArtifactResult` which holds the processed
 data to be passed back to the host. The result held by the returned object
 should be a Python data structure that can be JSON'd by the host. In the
-current version, the host will use the standard `json.dump` function 
-without custom encoding which means that the result should only contain
+current version, the host will use `json.dump` using an extended encoder
+which means that the result can contain `datetime.datetime` objects along with
 dicts, lists, strings, floats, ints, bools and None (this may change in
 future versions where other common data-types, such as datetime.datetime,
 will be encoded in a standard way). 
