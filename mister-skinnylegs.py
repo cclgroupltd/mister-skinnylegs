@@ -28,6 +28,13 @@ BANNER = """
 """
 
 
+class ExtendedEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+
 class MisterSkinnylegs:
     """
     Mister Skinnylegs is a plugin framework for website/web app artifacts stored by a browser.
@@ -208,7 +215,7 @@ async def main(
         log(f"Generating output at {out_file_path}")
 
         with out_file_path.open("xt", encoding="utf-8") as out:
-            json.dump(result, out)
+            json.dump(result, out, cls=ExtendedEncoder)
         if spec.presentation == ReportPresentation.table:
             csv_out_path = out_file_path.with_suffix(".csv")
             log(f"Generating csv output at {csv_out_path}")

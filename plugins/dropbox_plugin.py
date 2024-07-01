@@ -22,13 +22,13 @@ def uax_records(profile: ChromiumProfileFolder, log_func: LogFunction, storage: 
             result.append(
                 {"sequence": rec.leveldb_sequence_number,
                  "record type": "last active time",
-                 "timestamp": str(last_active_time)})
+                 "timestamp": last_active_time})
         elif rec.key == "uxa.inaniframe.last_active_time":
             last_active_time = parse_unix_ms(int(rec.value))
             result.append(
                 {"sequence": rec.leveldb_sequence_number,
                  "record type": "in ani frame last active time",
-                 "timestamp": str(last_active_time)})
+                 "timestamp": last_active_time})
         elif rec.key == "uxa.visit_id":
             result.append(
                 {"sequence": rec.leveldb_sequence_number,
@@ -88,8 +88,8 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
 
         results.append({
             "url": rec.key.url,
-            "cache request time": str(rec.metadata.request_time),
-            "cache response time": str(rec.metadata.response_time),
+            "cache request time": rec.metadata.request_time,
+            "cache response time": rec.metadata.response_time,
             "extracted file reference": file_out.get_file_location_reference()
         })
 

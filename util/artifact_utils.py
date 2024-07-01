@@ -1,3 +1,4 @@
+import datetime
 import typing
 import enum
 import abc
@@ -7,7 +8,8 @@ from collections.abc import Callable
 from ccl_chromium_reader import ChromiumProfileFolder
 
 
-JsonableType = typing.Union[None, int, float, str, bool, list["JsonableType"], dict[str, "JsonableType"]]
+JsonableType = typing.Union[
+    None, int, float, str, bool, datetime.datetime, list["JsonableType"], dict[str, "JsonableType"]]
 LogFunction = Callable[[str], None]
 ArtifactFunction = Callable[[ChromiumProfileFolder, LogFunction, "ArtifactStorage"], "ArtifactResult"]
 
