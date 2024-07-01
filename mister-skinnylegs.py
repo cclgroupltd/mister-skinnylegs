@@ -37,6 +37,7 @@ class MisterSkinnylegs:
             plugin_path: pathlib.Path,
             profile_path: pathlib.Path,
             storage_maker_func: colabc.Callable[[ArtifactSpec], ArtifactStorage],
+            cache_folder: typing.Optional[pathlib.Path]=None,
             log_callback: typing.Optional[LogFunction]=None,
             ):
         """
@@ -46,6 +47,7 @@ class MisterSkinnylegs:
         :param profile_path: path to the (Chrome/Chromium) browser profile folder.
         :param storage_maker_func: a function which takes an ArtifactSpec object and returns an object that
                implements the ArtifactStorage interface.
+        :param cache_folder:
         :param log_callback: a callback function for logging. Should be a function that takes a single string
                argument which is the message to be logged.
         """
@@ -54,12 +56,16 @@ class MisterSkinnylegs:
         if not profile_path.is_dir():
             raise NotADirectoryError(profile_path)
 
+        if cache_folder is not None and not cache_folder.is_dir():
+            raise NotADirectoryError(cache_folder)
+
         self._profile_folder_path = profile_path
+        self._cache_folder_path = cache_folder
         self._storage_maker_func = storage_maker_func
         self._log_callback = log_callback or MisterSkinnylegs.log_fallback
 
     async def _run_artifact(self, spec: ArtifactSpec):
-        with ChromiumProfileFolder(self._profile_folder_path) as profile:
+        with ChromiumProfileFolder(self._profile_folder_path, cache_folder=self._cache_folder_path) as profile:
             result = spec.function(profile, self._log_callback, self._storage_maker_func(spec))
             return spec, {
                 "artifact_service": spec.service,
@@ -149,28 +155,32 @@ def write_csv(csv_out: typing.TextIO, result: list):
     writer.writerows(result)
 
 
-async def main(args):
-    profile_input_path = pathlib.Path(args[0])
-    report_out_folder_path = pathlib.Path(args[1])
+async def main(
+        profile_input_folder: pathlib.Path,
+        report_output_folder: pathlib.Path,
+        cache_folder: typing.Optional[pathlib.Path]=None):
+    # profile_input_path = pathlib.Path(args[0])
+    # report_out_folder_path = pathlib.Path(args[1])
 
     print(BANNER)
 
-    if not profile_input_path.is_dir():
-        raise NotADirectoryError(f"Profile folder {profile_input_path} does not exist or is not a directory")
+    if not profile_input_folder.is_dir():
+        raise NotADirectoryError(f"Profile folder {profile_input_folder} does not exist or is not a directory")
 
-    if report_out_folder_path.exists():
-        raise FileExistsError(f"Output folder {report_out_folder_path} already exists")
+    if report_output_folder.exists():
+        raise FileExistsError(f"Output folder {report_output_folder} already exists")
 
-    report_out_folder_path.mkdir(parents=True)
-    log_file = SimpleLog(report_out_folder_path / f"log_{datetime.datetime.now():%Y%m%d_%H%M%S}.log")
+    report_output_folder.mkdir(parents=True)
+    log_file = SimpleLog(report_output_folder / f"log_{datetime.datetime.now():%Y%m%d_%H%M%S}.log")
     log = log_file.log_message
 
     mr_sl = MisterSkinnylegs(
         PLUGIN_PATH,
-        profile_input_path,
+        profile_input_folder,
         lambda s: ArtifactFileSystemStorage(
-            report_out_folder_path / sanitize_filename(spec.service),
+            report_output_folder / sanitize_filename(spec.service),
             sanitize_filename(s.name) + "_files"),
+        cache_folder=cache_folder,
         log_callback=log)
 
     log(f"Mister Skinnylegs v{__version__} is on the go!")
@@ -191,7 +201,7 @@ async def main(args):
             log(f"{spec.name} had no results, skipping")
             continue
 
-        out_dir_path = report_out_folder_path / sanitize_filename(spec.service)
+        out_dir_path = report_output_folder / sanitize_filename(spec.service)
         out_dir_path.mkdir(exist_ok=True)
         out_file_path = out_dir_path / (sanitize_filename(spec.name) + ".json")
 
@@ -212,7 +222,31 @@ async def main(args):
     log_file.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print(f"USAGE: {pathlib.Path(sys.argv[0]).name} <profile folder path> <output folder path>")
-        exit(1)
-    asyncio.run(main(sys.argv[1:]))
+    import argparse
+    arg_parser = argparse.ArgumentParser(
+        prog="mister-skinnylegs",
+        description="mister-skinnylegs is an open plugin framework for parsing website/webapp artifacts in browser "
+                    "data. This command-line interface runs the plugins in the 'plugins' folder against the provided "
+                    "profile folder."
+    )
+    arg_parser.add_argument(
+        "profile_folder",
+        type=pathlib.Path,
+        help="the path to the chrom(e|ium) profile folder")
+    arg_parser.add_argument(
+        "output_folder",
+        type=pathlib.Path,
+        help="output folder for processed data - should not already exist")
+    arg_parser.add_argument(
+        "-c", "--cache_folder",
+        action="store",
+        default=None,
+        dest="cache_folder",
+        type=pathlib.Path,
+        help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
+             "case on Android)")
+
+    args = arg_parser.parse_args()
+    print(args)
+
+    asyncio.run(main(args.profile_folder, args.output_folder, cache_folder=args.cache_folder))
