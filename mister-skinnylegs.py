@@ -12,7 +12,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
 __contact__ = "Alex Caithness"
 
@@ -166,9 +166,6 @@ async def main(
         profile_input_folder: pathlib.Path,
         report_output_folder: pathlib.Path,
         cache_folder: typing.Optional[pathlib.Path]=None):
-    # profile_input_path = pathlib.Path(args[0])
-    # report_out_folder_path = pathlib.Path(args[1])
-
     print(BANNER)
 
     if not profile_input_folder.is_dir():
@@ -197,7 +194,7 @@ async def main(
     log("Plugins loaded:")
     log("===============")
     for spec, path in mr_sl.artifacts:
-        log(f"{spec.name}  -  {path.name}")
+        log(f"{spec.name}\tv{spec.version} -\t{path.name}")
 
     log("")
     log("Processing starting...")
@@ -227,6 +224,8 @@ async def main(
     log("Mister Skinnylegs is going home...")
 
     log_file.close()
+    print()
+    print()
 
 if __name__ == "__main__":
     import argparse
@@ -254,6 +253,4 @@ if __name__ == "__main__":
              "case on Android)")
 
     args = arg_parser.parse_args()
-    print(args)
-
     asyncio.run(main(args.profile_folder, args.output_folder, cache_folder=args.cache_folder))
