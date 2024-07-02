@@ -1,5 +1,11 @@
-# mister-skinnylegs
-
+```
+╔╦╗┬┌─┐┌┬┐┌─┐┬─┐            
+║║║│└─┐ │ ├┤ ├┬┘            
+╩ ╩┴└─┘ ┴ └─┘┴└─            
+╔═╗┬┌─┬┌┐┌┌┐┌┬ ┬┬  ┌─┐┌─┐┌─┐
+╚═╗├┴┐│││││││└┬┘│  ├┤ │ ┬└─┐
+╚═╝┴ ┴┴┘└┘┘└┘ ┴ ┴─┘└─┘└─┘└─┘
+```
 mister-skinnylegs is an open plugin framework for parsing website/webapp 
 artifacts in browser data. 
 It currently provides a command line interface (CLI) for running the 
