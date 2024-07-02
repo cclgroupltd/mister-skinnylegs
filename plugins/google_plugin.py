@@ -63,8 +63,7 @@ def google_search_urls(
         results.append(history_rec_details)
 
     for cache_rec in profile.iterate_cache(url=SEARCH_URL_PATTERN, omit_cached_data=True):
-        # TODO: shouldn't need to strip when this is fixed in the cache module
-        cache_url = cache_rec.key.url.rstrip("\0")
+        cache_url = cache_rec.key.url
         search_details = _get_search_details(cache_url)
         if search_details is None:
             continue

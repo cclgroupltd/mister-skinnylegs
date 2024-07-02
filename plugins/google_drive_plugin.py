@@ -83,7 +83,7 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
         log_func(f"Exporting thumbnail to: {file_out.get_file_location_reference()}")
 
         results.append({
-            "url": rec.key.url.rstrip("\0"),
+            "url": rec.key.url,
             "cache request time": rec.metadata.request_time,
             "cache response time": rec.metadata.response_time,
             "extracted file reference": file_out.get_file_location_reference()
