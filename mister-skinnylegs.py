@@ -12,7 +12,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
 __contact__ = "Alex Caithness"
 
@@ -185,7 +185,7 @@ async def main(
         PLUGIN_PATH,
         profile_input_folder,
         lambda s: ArtifactFileSystemStorage(
-            report_output_folder / sanitize_filename(spec.service),
+            report_output_folder / sanitize_filename(s.service),
             sanitize_filename(s.name) + "_files"),
         cache_folder=cache_folder,
         log_callback=log)
