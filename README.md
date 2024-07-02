@@ -67,6 +67,15 @@ folder, generating output in the output folder. All plugins at least generate
 a json file per artifact, but other outputs may also be created depending on
 the plugin.
 
+There is an additional command line argument if you need to point the tool at
+a cache folder from outside of the profile folder (such as is the case with 
+Android for example):
+
+```commandline
+py .\mister-skinnylegs.py --cache_folder "C:\Users\you\external_cache_here\Cache_Data" "c:\Users\you\AppData\Local\Google\Chrome\User Data\Profile 1" output_folder
+
+```
+
 ## Contributing
 ### Plugins
 Mister Skinnylegs plugins are represented by python modules placed in the
