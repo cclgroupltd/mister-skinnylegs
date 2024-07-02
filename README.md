@@ -57,7 +57,9 @@ py .\mister-skinnylegs.py "c:\Users\you\AppData\Local\Google\Chrome\User Data\Pr
 ```
 
 This will run every plugin found in the `plugins` folder against the profile
-folder, generating output in the output folder.
+folder, generating output in the output folder. All plugins at least generate
+a json file per artifact, but other outputs may also be created depending on
+the plugin.
 
 ## Contributing
 ### Plugins

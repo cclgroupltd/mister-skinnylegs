@@ -10,7 +10,7 @@ def get_messages(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
     # format is more appropriate long-term, particularly when it comes to attachments
     results = []
 
-    for cache_rec in profile.iterate_cache(url=re.compile(r"discord.com/api/v9/channels/\d+?/messages")):
+    for cache_rec in profile.iterate_cache(url=re.compile(r"discord.com/api/v\d{1,2}/channels/\d+?/messages")):
         msg_list = json.loads(cache_rec.data.decode("utf-8"))
         for msg in msg_list:
             attachments = "\n".join(
@@ -29,7 +29,9 @@ def get_messages(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "edited timestamp": msg["edited_timestamp"],
                 "content": msg["content"],
                 "attachments": attachments,
-                "message reference": message_reference
+                "message reference": message_reference,
+                "cache_url": cache_rec.key.url,
+                "data location": f"{cache_rec.data_location.file_name}@{cache_rec.data_location.offset}"
             })
 
     results.sort(key=lambda x: (x["channel id"], x["timestamp"]))
