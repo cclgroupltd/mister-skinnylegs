@@ -93,6 +93,8 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
             "extracted file reference": file_out.get_file_location_reference()
         })
 
+    results.sort(key=lambda x: x["cache request time"])
+
     return ArtifactResult(results)
 
 
@@ -117,7 +119,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox Thumbnails",
         "Recovers thumbnails for files stored in Dropbox",
-        "0.1",
+        "0.2",
         thumbnails,
         ReportPresentation.table
     ),
