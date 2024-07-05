@@ -1,9 +1,5 @@
-import base64
-import json
 import re
 import datetime
-import struct
-import urllib.parse
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
@@ -73,9 +69,12 @@ def folders_and_files(
 def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
     for idx, rec in enumerate(profile.iterate_cache(url=_matches_thumbnail_pattern)):
-        content_disposition = rec.metadata.get_attribute("content-disposition")[0]
-        cache_filename = re.search(r"filename=\"(.+?)\"", content_disposition).group(1)
-        out_filename = f"{idx}_{cache_filename}"
+        if rec.metadata:
+            content_disposition = rec.metadata.get_attribute("content-disposition")[0]
+            cache_filename = re.search(r"filename=\"(.+?)\"", content_disposition).group(1)
+            out_filename = f"{idx}_{cache_filename}"
+        else:
+            out_filename = f"{idx}_"
 
         with storage.get_binary_stream(out_filename) as file_out:
             file_out.write(rec.data)
@@ -84,12 +83,12 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
 
         results.append({
             "url": rec.key.url,
-            "cache request time": rec.metadata.request_time,
-            "cache response time": rec.metadata.response_time,
+            "cache request time": rec.metadata.request_time if rec.metadata else None,
+            "cache response time": rec.metadata.response_time if rec.metadata else None,
             "extracted file reference": file_out.get_file_location_reference()
         })
 
-    results.sort(key=lambda x: x["cache request time"])
+    results.sort(key=lambda x: x["cache request time"] or datetime.datetime(1601, 1, 1))
 
     return ArtifactResult(results)
 
@@ -114,7 +113,7 @@ __artifacts__ = (
         "Google Drive",
         "Google Drive Files and Folders",
         "Recovers Google Drive and Docs folder and file names (and urls) from history records",
-        "0.1",
+        "0.2",
         folders_and_files,
         ReportPresentation.table
     ),
@@ -122,7 +121,7 @@ __artifacts__ = (
         "Google Drive",
         "Google Drive Thumbnails",
         "Recovers Google Drive thumbnails from the cache",
-        "0.1",
+        "0.2",
         thumbnails,
         ReportPresentation.table
     ),
@@ -130,7 +129,7 @@ __artifacts__ = (
         "Google Drive",
         "Google Drive Usage",
         "Recovers indications of Google Drive usage",
-        "0.1",
+        "0.2",
         timeline_usage,
         ReportPresentation.table
     ),

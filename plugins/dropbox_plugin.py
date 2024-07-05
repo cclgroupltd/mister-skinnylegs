@@ -77,9 +77,12 @@ def recovered_file_system(
 def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
     for idx, rec in enumerate(profile.iterate_cache(re.compile(r"https://previews.dropbox.com/p/thumb/"))):
-        content_disposition = rec.metadata.get_attribute("content-disposition")[0]
-        cache_filename = re.search(r"filename=\"(.+?)\"", content_disposition).group(1)
-        out_filename = f"{idx}_{cache_filename}"
+        if rec.metadata:
+            content_disposition = rec.metadata.get_attribute("content-disposition")[0]
+            cache_filename = re.search(r"filename=\"(.+?)\"", content_disposition).group(1)
+            out_filename = f"{idx}_{cache_filename}"
+        else:
+            out_filename = f"{idx}_"
 
         with storage.get_binary_stream(out_filename) as file_out:
             file_out.write(rec.data)
@@ -88,12 +91,12 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
 
         results.append({
             "url": rec.key.url,
-            "cache request time": rec.metadata.request_time,
-            "cache response time": rec.metadata.response_time,
+            "cache request time": rec.metadata.request_time if rec.metadata else None,
+            "cache response time": rec.metadata.response_time if rec.metadata else None,
             "extracted file reference": file_out.get_file_location_reference()
         })
 
-    results.sort(key=lambda x: x["cache request time"])
+    results.sort(key=lambda x: x["cache request time"] or datetime.datetime(1601, 1, 1))
 
     return ArtifactResult(results)
 
@@ -103,7 +106,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox Session Storage User Activity",
         "Recovers user activity from 'uxa' records in Session Storage",
-        "0.1",
+        "0.2",
         uax_records,
         ReportPresentation.table
     ),
@@ -111,7 +114,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox File System",
         "Recovers a partial file system from URLs in the history",
-        "0.1",
+        "0.2",
         recovered_file_system,
         ReportPresentation.table
     ),
@@ -119,7 +122,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox Thumbnails",
         "Recovers thumbnails for files stored in Dropbox",
-        "0.2",
+        "0.3",
         thumbnails,
         ReportPresentation.table
     ),

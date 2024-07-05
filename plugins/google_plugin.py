@@ -72,7 +72,7 @@ def google_search_urls(
             "source": "Cache URLs",
             "id": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             "domain": urllib.parse.urlparse(cache_url).hostname,
-            "timestamp": cache_rec.metadata.response_time,
+            "timestamp": cache_rec.metadata.response_time if cache_rec.metadata else None,
         }
 
         cache_rec_details.update(search_details)
@@ -100,7 +100,7 @@ def google_search_urls(
 
         results.append(sess_rec_details)
 
-    results.sort(key=lambda x: x["timestamp"])
+    results.sort(key=lambda x: x["timestamp"] or datetime.datetime(1601, 1, 1))
     return ArtifactResult(results)
 
 
@@ -109,7 +109,7 @@ __artifacts__ = (
         "Google",
         "Google searches",
         "Recovers google searches from URLs in history, session storage, cache",
-        "0.1",
+        "0.2",
         google_search_urls,
         ReportPresentation.table
     ),
