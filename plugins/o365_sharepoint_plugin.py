@@ -1,18 +1,17 @@
-import base64
+import datetime
 import json
 import mimetypes
 import re
-import datetime
-import struct
+import uuid
 import urllib.parse
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
 
-# TODO: Look at session tracking via x-usersessionid in headers
-
 
 _GUID_FRAGMENT = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+
+# -- Recent Files Patterns --
 RECENT_FILES_SHAREPOINT_URL_PATTERN = re.compile(r"sharepoint.com/.+?/_api/sp.RecentFileCollection")
 RECENT_FILES_EDGEWORTH_URL_PATTERN = re.compile(
     r"substrate\.office\.com/recommended/api/beta/edgeworth/(?P<method>deltasync|recent)")
@@ -28,21 +27,56 @@ GRAPH_THUMB_FILES_URL_PATTERN = re.compile(
     r"https://graph\.microsoft\.com/v1\.0/drives/(?P<drive_id>[\w!\-]+?)/items/(?P<item_id>[0-9A-Z]+?)/thumbnail"
 )
 
-DOWNLOAD_URL_PATTERN = re.compile(r"sharepoint.com/.+/_layouts/\d{2}/download.aspx")
+# -- Activity patterns --
+# qs param in qs (and then part of the WOPIsrc embedded parameter - guid as straight hex)
+DOCUMENT_EDIT_SESSION_PATTERN = re.compile(
+    r"officeapps.live.com/rtc2/(findsession|signalr/(start|negotiate))")
+DOWNLOAD_URL_PATTERN = re.compile(r"sharepoint.com/.+/_layouts/\d{2}/download.aspx")  # UniqueID in qs, docid in headers
+EXCEL_GET_FILE_COPY_URL_PATTERN = re.compile(
+    r"officeapps.live.com/x/_layouts/GetFileCopyFileHandler.aspx")  # usid and workbookFilename in qs
+EXCEL_FILE_FILE_HANDLER_PATTERN = re.compile(
+    r"officeapps.live.com/x/_layouts/XlFileHandler.aspx")  # usid in qs
+# TODO: is "Authenticate.aspx" useful? Also seen in history.
 
-DOCUMENT_VIEW_URL_PATTERN = re.compile(r"sharepoint.com/.+/_layouts/15/(Doc.asp|doc2.aspx)")
+
+DOCUMENT_VIEW_URL_PATTERN = re.compile(
+    r"sharepoint.com/.+/_layouts/15/(Doc.asp|doc2.aspx)")  # sourcedoc and file in qs
+
 
 CACHE_ACTIVITY_PATTERNS = [
-    DOWNLOAD_URL_PATTERN
+    DOCUMENT_EDIT_SESSION_PATTERN,
+    DOWNLOAD_URL_PATTERN,
+    EXCEL_GET_FILE_COPY_URL_PATTERN,
+    EXCEL_FILE_FILE_HANDLER_PATTERN,
 ]
 
 HISTORY_ACTIVITY_PATTERNS = [
     DOCUMENT_VIEW_URL_PATTERN
 ]
 
+DOWNLOADS_ACTIVITY_PATTERNS = [
+    DOWNLOAD_URL_PATTERN
+]
+
 THUMB_UNIQUE_ID_PATTERN = re.compile(r"(?<=/items/)(?P<unique_id>" + _GUID_FRAGMENT + ")(?=/driveItem)")
 
 NULL_GUID = "00000000-0000-0000-0000-000000000000"
+
+
+def _parse_content_disposition(content_disp: str):
+    splitted = content_disp.split(";")
+    disp_type = splitted[0]
+    params = {}
+    for param in splitted[1:]:
+        name, value = param.split("=", 1)
+        name = name.strip()
+        if name == "filename":
+            params["filename"] = value
+        elif name == "filename*":
+            enc, value = value.split("''", 1)
+            params["filename*"] = urllib.parse.unquote(value, encoding=enc.lower())
+
+    return disp_type, params
 
 
 def _get_sharepoint_recent_files(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage):
@@ -246,13 +280,190 @@ def _is_cache_activity_url(s: str) -> bool:
     return any(x.search(s) for x in CACHE_ACTIVITY_PATTERNS)
 
 
+def _is_history_activity_url(s: str) -> bool:
+    return any(x.search(s) for x in HISTORY_ACTIVITY_PATTERNS)
+
+
+def _is_downloads_activity_url(s: str) -> bool:
+    return any(x.search(s) for x in DOWNLOADS_ACTIVITY_PATTERNS)
+
+
+def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+    results = []
+
+    # Stuff from the cache
+    for cache_rec in profile.iterate_cache(url=_is_cache_activity_url):
+        if cache_rec.metadata is None:
+            continue  # TODO: is it worth still harvesting the URLs as untimed events?
+
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(cache_rec.key.url).query)
+
+        if DOCUMENT_EDIT_SESSION_PATTERN.search(cache_rec.key.url):
+            # get ID for file from embedded query string
+            embedded_query = urllib.parse.parse_qs(urllib.parse.unquote(query["qs"][0]))
+            wopi_src = embedded_query["WOPIsrc"][0]
+            file_unique_id = None
+            if url_match := re.search(r"wopi.ashx/files/(?P<guid>[0-9a-f]{32})", wopi_src):
+                file_unique_id = str(uuid.UUID(url_match.group("guid")))
+
+            results.append({
+                "source": "Cache",
+                "timestamp": cache_rec.metadata.response_time,
+                "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
+                "user ip address": cache_rec.metadata.get_attribute("x-userhostaddress")[0],
+                "event type": "Edit/View Session",
+                "site host": None,
+                "site sharepoint id": None,
+                "file unique sharepoint id": file_unique_id,
+                "filename": None,  # could correlate using file listings
+
+                "cache request timestamp": cache_rec.metadata.request_time,
+                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache_url": cache_rec.key.url,
+                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+            })
+        elif DOWNLOAD_URL_PATTERN.search(cache_rec.key.url):
+            doc_id = cache_rec.metadata.get_attribute("docid")[0]
+            host, site_id, file_unique_id = doc_id.split("_", 2)
+            disp_type, filenames = _parse_content_disposition(
+                cache_rec.metadata.get_attribute("content-disposition")[0])
+            filename = filenames.get("filename*") or filenames.get("filename")
+
+            results.append({
+                "source": "Cache",
+                "timestamp": cache_rec.metadata.response_time,
+                "user session id": None,
+                "user ip address": None,
+                "event type": "Download",
+                "site host": None,
+                "site sharepoint id": site_id,
+                "file unique sharepoint id": file_unique_id,
+                "filename": filename,
+
+                "cache request timestamp": cache_rec.metadata.request_time,
+                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache_url": cache_rec.key.url,
+                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+            })
+        elif EXCEL_GET_FILE_COPY_URL_PATTERN.search(cache_rec.key.url):
+            filename = query.get("workbookFilename")[0]
+
+            results.append({
+                "source": "Cache",
+                "timestamp": cache_rec.metadata.response_time,
+                "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
+                "user ip address": None,
+                "event type": "Download",
+                "site host": None,
+                "site sharepoint id": None,
+                "file unique sharepoint id": None,
+                "filename": filename,
+
+                "cache request timestamp": cache_rec.metadata.request_time,
+                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache_url": cache_rec.key.url,
+                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+            })
+        elif EXCEL_FILE_FILE_HANDLER_PATTERN.search(cache_rec.key.url):
+            disp_type, filenames = _parse_content_disposition(
+                cache_rec.metadata.get_attribute("content-disposition")[0])
+            filename = filenames.get("filename*") or filenames.get("filename")
+
+            results.append({
+                "source": "Cache",
+                "timestamp": cache_rec.metadata.response_time,
+                "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
+                "user ip address": None,
+                "event type": "Download",
+                "site host": None,
+                "site sharepoint id": None,
+                "file unique sharepoint id": None,
+                "filename": filename,
+
+                "cache request timestamp": cache_rec.metadata.request_time,
+                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache_url": cache_rec.key.url,
+                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+            })
+
+    # History things
+    for history_rec in profile.iterate_history_records(url=_is_history_activity_url):
+        url = urllib.parse.urlparse(history_rec.url)
+        query = urllib.parse.parse_qs(url.query)
+
+        if DOCUMENT_VIEW_URL_PATTERN.search(history_rec.url):
+            results.append({
+                "source": "History",
+                "timestamp": history_rec.visit_time,
+
+                "user session id": None,
+                "user ip address": None,
+                "event type": "File Open",
+                "site host": url.hostname,
+                "site sharepoint id": None,
+                "file unique sharepoint id": query.get("sourcedoc", [""])[0].lower().strip("{}"),
+                "filename": query.get("file", [""])[0],
+
+                "history_url": history_rec.url,
+                "history_id": history_rec.rec_id,
+
+            })
+
+    # Downloads
+    downloads = {}  # collate downloads first to get the best version
+    chrome_epoch = datetime.datetime(1601, 1, 1)
+    for download in profile.iter_downloads(download_url=_is_downloads_activity_url):
+        if download.guid not in downloads:
+            downloads[download.guid] = download
+        elif ((download.hash and not downloads[download.guid].hash) or
+              (downloads[download.guid].end_time == chrome_epoch and download.end_time > chrome_epoch)):
+            downloads[download.guid] = download
+
+    for download in downloads.values():
+        url = urllib.parse.urlparse(download.url_chain[-1])
+        query = urllib.parse.parse_qs(url.query)
+
+        if DOWNLOAD_URL_PATTERN.search(download.url_chain[-1]):
+            results.append({
+                "source": f"Downloads ({download.record_source.name})",
+                "timestamp": download.start_time,
+
+                "user session id": None,
+                "user ip address": None,
+                "event type": "Download",
+                "site host": url.hostname,
+                "site sharepoint id": None,
+                "file unique sharepoint id": query.get("UniqueId", [""])[0].lower().strip("{}"),
+                "filename": None,
+
+                "download_target_path": download.target_path,
+                "download_sha256": download.hash,
+                "download_size": download.total_bytes,
+                "download_start_timestamp": download.start_time,
+                "download_end_timestamp": download.end_time,
+                "download_record_id": download.record_id,
+                "download_guid": download.guid
+            })
+
+    results.sort(key=lambda x: x["timestamp"])
+    return ArtifactResult(results)
+
+
 __artifacts__ = (
     ArtifactSpec(
         "O365-Sharepoint",
         "O365-Sharepoint recent files",
-        "Recovers recent files list and any thumbnails from API responses in the cache",
+        "Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365",
         "0.1",
         get_recent_files,
+        ReportPresentation.table
+    ),
+    ArtifactSpec(
+        "O365-Sharepoint",
+        "O365-Sharepoint user activity",
+        "Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365",
+        "0.1",
+        get_activity,
         ReportPresentation.table
     ),
 )
