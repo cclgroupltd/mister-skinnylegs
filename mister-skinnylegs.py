@@ -34,7 +34,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 __description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
 __contact__ = "Alex Caithness"
 
@@ -47,6 +47,9 @@ BANNER = """
 ╔═╗┬┌─┬┌┐┌┌┐┌┬ ┬┬  ┌─┐┌─┐┌─┐
 ╚═╗├┴┐│││││││└┬┘│  ├┤ │ ┬└─┐
 ╚═╝┴ ┴┴┘└┘┘└┘ ┴ ┴─┘└─┘└─┘└─┘
+by CCL Forensics Ltd.
+For updates, support, and feature requests:
+https://github.com/cclgroupltd/mister-skinnylegs
 """
 
 
@@ -249,14 +252,26 @@ async def main(
     print()
     print()
 
+
+def list_plugins():
+    loader = PluginLoader(PLUGIN_PATH)
+    for artifact, location in loader.artifacts:
+        print(f"- {location.name}\t{artifact.service}\t{artifact.name}\t{artifact.version}")
+        print("\n".join(f"\t{desc_line}" for desc_line in artifact.description.splitlines(keepends=False)))
+        if artifact.citation:
+            print("\n".join(f"\t{cite_line}" for cite_line in artifact.citation.splitlines(keepends=False)))
+
+
 if __name__ == "__main__":
     import argparse
     arg_parser = argparse.ArgumentParser(
         prog="mister-skinnylegs",
         description="mister-skinnylegs is an open plugin framework for parsing website/webapp artifacts in browser "
                     "data. This command-line interface runs the plugins in the 'plugins' folder against the provided "
-                    "profile folder."
+                    "profile folder.",
+        exit_on_error=False
     )
+
     arg_parser.add_argument(
         "profile_folder",
         type=pathlib.Path,
@@ -273,6 +288,18 @@ if __name__ == "__main__":
         type=pathlib.Path,
         help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
              "case on Android)")
+    arg_parser.add_argument(
+        "-l", "--list_plugins",
+        action="store_true",
+        dest="list_plugins",
+        help="list plugins and quit"
+    )
+
+    if "-l" in sys.argv or "--list_plugins" in sys.argv:
+        print(BANNER)
+        list_plugins()
+        exit(0)
 
     args = arg_parser.parse_args()
+
     asyncio.run(main(args.profile_folder, args.output_folder, cache_folder=args.cache_folder))
