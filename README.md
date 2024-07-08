@@ -141,3 +141,8 @@ will be encoded in a standard way).
 
 A minimal example of a plugin can be found in 
 [example_plugin_.py](plugins/example_plugin_.py) 
+
+#### chrome-profile-view
+We have released another project which might assist in the research of new
+browser artifacts which you can find here: 
+https://github.com/cclgroupltd/chrome-profile-view/
