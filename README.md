@@ -11,6 +11,21 @@ artifacts in browser data.
 It currently provides a command line interface (CLI) for running the 
 plugins against a Chrome or Chromium Profile Folder.
 
+## Current Plugins
+| Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
+|---------------------------|-----------------|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------------|
+| discord_plugin.py         | Discord         | Discord Chat Messages                 | 0.1     | Recovers Discord chat messages from the Cache                                                             |
+| dropbox_plugin.py         | Dropbox         | Dropbox Session Storage User Activity | 0.2     | Recovers user activity from 'uxa' records in Session Storage                                              |
+| dropbox_plugin.py         | Dropbox         | Dropbox File System                   | 0.2     | Recovers a partial file system from URLs in the history                                                   |
+| dropbox_plugin.py         | Dropbox         | Dropbox Thumbnails                    | 0.3     | Recovers thumbnails for files stored in Dropbox                                                           |
+| google_drive_plugin.py    | Google Drive    | Google Drive Files and Folders        | 0.2     | Recovers Google Drive and Docs folder and file names (and urls) from history records                      |
+| google_drive_plugin.py    | Google Drive    | Google Drive Thumbnails               | 0.2     | Recovers Google Drive thumbnails from the cache                                                           |
+| google_drive_plugin.py    | Google Drive    | Google Drive Usage                    | 0.2     | Recovers indications of Google Drive usage                                                                |
+| google_plugin.py          | Google          | Google searches                       | 0.2     | Recovers google searches from URLs in history, session storage, cache                                     |
+| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.1     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
+| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.1     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
+
+
 ## The CLI Tool
 ### Setting up the CLI tool
 The tool requires [Python](https://python.org) 3.10 or above. Once this is 

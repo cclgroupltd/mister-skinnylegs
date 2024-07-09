@@ -34,7 +34,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
 __contact__ = "Alex Caithness"
 
@@ -262,6 +262,21 @@ def list_plugins():
             print("\n".join(f"\t{cite_line}" for cite_line in artifact.citation.splitlines(keepends=False)))
 
 
+def table_plugins():
+    loader = PluginLoader(PLUGIN_PATH)
+    print("| Plugin File | Service | Artifact | Version | Description |")
+    print("| ----------- | ------- | -------- | ------- | ----------- |")
+    for artifact, location in loader.artifacts:
+        print("| ", end="")
+        print(" | ".join([
+            location.name,
+            artifact.service,
+            artifact.name,
+            artifact.version,
+            "<br>".join(artifact.description.splitlines(keepends=False))]), end="")
+        print(" |")
+
+
 if __name__ == "__main__":
     import argparse
     arg_parser = argparse.ArgumentParser(
@@ -294,10 +309,21 @@ if __name__ == "__main__":
         dest="list_plugins",
         help="list plugins and quit"
     )
+    arg_parser.add_argument(
+        "-t", "--table_list_plugins",
+        action="store_true",
+        dest="table_list_plugins",
+        help="list plugins as a markdown table and quit"
+    )
 
     if "-l" in sys.argv or "--list_plugins" in sys.argv:
         print(BANNER)
         list_plugins()
+        exit(0)
+
+    if "-t" in sys.argv or "--table_list_plugins" in sys.argv:
+        print(BANNER)
+        table_plugins()
         exit(0)
 
     args = arg_parser.parse_args()
