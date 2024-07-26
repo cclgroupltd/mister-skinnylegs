@@ -32,7 +32,7 @@ plugins against a Chrome or Chromium Profile Folder.
 
 ## The CLI Tool
 ### Setting up the CLI tool
-The tool requires [Python](https://python.org) 3.10 or above. Once this is 
+The tool requires [Python](https://python.org) 3.12 or above. Once this is 
 installed, download the code from this repository and put it in a folder.
 
 The tool some dependencies which will need to be downloaded. We recommend 
