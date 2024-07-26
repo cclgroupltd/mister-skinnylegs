@@ -24,6 +24,10 @@ plugins against a Chrome or Chromium Profile Folder.
 | google_plugin.py          | Google          | Google searches                       | 0.2     | Recovers google searches from URLs in history, session storage, cache                                     |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.1     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.1     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
+| storage_dump_plugin.py    | Data Dump       | History                               | 0.1     | Dumps History Records                                                                                     |
+| storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.1     | Dumps Download Records                                                                                    |
+| storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.1     | Dumps Localstorage Records                                                                                |
+| storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
 
 
 ## The CLI Tool

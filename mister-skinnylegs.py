@@ -34,8 +34,8 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.8"
-__description__ = "Library for reading Chrome/Chromium Cache (both blockfile and simple format)"
+__version__ = "0.0.9"
+__description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
 PLUGIN_PATH = pathlib.Path(__file__).resolve().parent / pathlib.Path("plugins")
