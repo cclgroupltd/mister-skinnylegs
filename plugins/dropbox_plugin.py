@@ -4,8 +4,8 @@ import datetime
 import urllib.parse
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from ccl_chromium_reader import ChromiumProfileFolder
-
+from util.profile_folder_protocols import BrowserProfileProtocol
+from ccl_chromium_reader.ccl_chromium_profile_folder import ChromiumProfileFolder
 
 EPOCH = datetime.datetime(1970, 1, 1)
 
@@ -14,35 +14,35 @@ def parse_unix_ms(ms):
     return EPOCH + datetime.timedelta(milliseconds=ms)
 
 
-def uax_records(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def uax_records(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     result = []
     for rec in profile.iter_session_storage(host=re.compile(r"dropbox\.com"), key=re.compile(r"^uxa")):
         if rec.key == "uxa.last_active_time":
             last_active_time = parse_unix_ms(int(rec.value))
             result.append(
-                {"sequence": rec.leveldb_sequence_number,
+                {"record location": rec.record_location,
                  "record type": "last active time",
                  "timestamp": last_active_time})
         elif rec.key == "uxa.inaniframe.last_active_time":
             last_active_time = parse_unix_ms(int(rec.value))
             result.append(
-                {"sequence": rec.leveldb_sequence_number,
+                {"record location": rec.record_location,
                  "record type": "in ani frame last active time",
                  "timestamp": last_active_time})
         elif rec.key == "uxa.visit_id":
             result.append(
-                {"sequence": rec.leveldb_sequence_number,
+                {"record location": rec.record_location,
                  "record type": "visit id",
                  "visit id": rec.value})
         elif rec.key == "uxa.previous_url":
             result.append(
-                {"sequence": rec.leveldb_sequence_number,
+                {"record location": rec.record_location,
                  "record type": "previous url",
                  "previous url": rec.value})
         elif rec.key == "uxa.clicked_link":
             clicked_link_obj = json.loads(rec.value)
             result.append(
-                {"sequence": rec.leveldb_sequence_number,
+                {"record location": rec.record_location,
                  "record type": "clicked link",
                  "visit id": clicked_link_obj["visit_id"],
                  "url": clicked_link_obj["origin_href"],
@@ -54,7 +54,7 @@ def uax_records(profile: ChromiumProfileFolder, log_func: LogFunction, storage: 
 
 
 def recovered_file_system(
-        profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+        profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = set()
     for rec in profile.iterate_history_records(re.compile(r"dropbox\.com/home")):
         # example url: https://www.dropbox.com/home/Alpha/Bravo?preview=6b+Mkv.mkv
@@ -74,8 +74,10 @@ def recovered_file_system(
     return ArtifactResult([{"path": x} for x in sorted(results)])
 
 
-def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def thumbnails(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
+
     for idx, rec in enumerate(profile.iterate_cache(re.compile(r"https://previews.dropbox.com/p/thumb/"))):
         if rec.metadata:
             content_disposition = rec.metadata.get_attribute("content-disposition")[0]
@@ -92,7 +94,7 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
         results.append({
             "url": rec.key.url,
             "cache request time": rec.metadata.request_time if rec.metadata else None,
-            "cache response time": rec.metadata.response_time if rec.metadata else None,
+            "cache response time": rec.metadata.response_time if has_response_time and rec.metadata else None,
             "extracted file reference": file_out.get_file_location_reference()
         })
 
@@ -106,7 +108,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox Session Storage User Activity",
         "Recovers user activity from 'uxa' records in Session Storage",
-        "0.2",
+        "0.3",
         uax_records,
         ReportPresentation.table
     ),
@@ -122,7 +124,7 @@ __artifacts__ = (
         "Dropbox",
         "Dropbox Thumbnails",
         "Recovers thumbnails for files stored in Dropbox",
-        "0.3",
+        "0.4",
         thumbnails,
         ReportPresentation.table
     ),

@@ -3,6 +3,7 @@ import datetime
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
+from util.profile_folder_protocols import BrowserProfileProtocol
 
 FOLDERS_URL_PATTERN = re.compile(r"^https://drive.google.com/drive/folders/")
 FILES_URL_PATTERN = re.compile(r"^https://drive.google.com/file/d/")
@@ -12,6 +13,7 @@ THUMBNAIL_URL_PATTERN_1 = re.compile(r"googleusercontent\.com/fife.+w\d{2,4}-h\d
 THUMBNAIL_URL_PATTERN_2 = re.compile(r"drive.fife.usercontent.google.com/u.+w\d{2,4}-h\d{2,4}")
 
 EPOCH = datetime.datetime(1970, 1, 1)
+
 
 def parse_unix_ms(ms):
     return EPOCH + datetime.timedelta(milliseconds=ms)
@@ -26,7 +28,7 @@ def _matches_thumbnail_pattern(s: str):
 
 
 def folders_and_files(
-        profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+        profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
     for history_rec in profile.iterate_history_records(url=_matches_file_listing_pattern):
@@ -34,7 +36,7 @@ def folders_and_files(
             # page title will be structured as: "My Drive - Google Drive"
             folder_name = history_rec.title.rsplit(" - ", 1)[0]
             results.append({
-                "id": history_rec.rec_id,
+                "id": history_rec.record_location,
                 "type": "Folder",
                 "name": folder_name,
                 "url": history_rec.url,
@@ -44,7 +46,7 @@ def folders_and_files(
             # page title will be structured as: "screenshot.png - Google Drive"
             file_name = history_rec.title.rsplit(" - ", 1)[0]
             results.append({
-                "id": history_rec.rec_id,
+                "id": history_rec.record_location,
                 "type": "File",
                 "name": file_name,
                 "url": history_rec.url,
@@ -55,7 +57,7 @@ def folders_and_files(
             doc_name = history_rec.title.rsplit(" - ", 1)[0]
             service = docs_match.group("service").title()
             results.append({
-                "id": history_rec.rec_id,
+                "id": history_rec.record_location,
                 "type": service,
                 "name": doc_name,
                 "url": history_rec.url,
@@ -66,7 +68,8 @@ def folders_and_files(
     return ArtifactResult(results)
 
 
-def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def thumbnails(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
     results = []
     for idx, rec in enumerate(profile.iterate_cache(url=_matches_thumbnail_pattern)):
         if rec.metadata:
@@ -84,7 +87,7 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
         results.append({
             "url": rec.key.url,
             "cache request time": rec.metadata.request_time if rec.metadata else None,
-            "cache response time": rec.metadata.response_time if rec.metadata else None,
+            "cache response time": rec.metadata.response_time if has_response_time and rec.metadata else None,
             "extracted file reference": file_out.get_file_location_reference()
         })
 
@@ -93,13 +96,13 @@ def thumbnails(profile: ChromiumProfileFolder, log_func: LogFunction, storage: A
     return ArtifactResult(results)
 
 
-def timeline_usage(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def timeline_usage(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
     for rec in profile.iter_session_storage("https://drive.google.com/", key="ui:tabFirstStartTimeMsec"):
         results.append({
             "source": "Session Storage",
-            "id": rec.leveldb_sequence_number,
+            "id": rec.record_location,
             "type": "Tab first start",
             "timestamp": parse_unix_ms(int(rec.value))
         })

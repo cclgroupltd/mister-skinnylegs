@@ -34,7 +34,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 

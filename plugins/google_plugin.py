@@ -7,6 +7,7 @@ import urllib.parse
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
+from util.profile_folder_protocols import BrowserProfileProtocol
 
 
 EPOCH = datetime.datetime(1970, 1, 1)
@@ -43,7 +44,7 @@ def _get_search_details(raw_url):
 
 
 def google_search_urls(
-        profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+        profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     # TODO: this is extremely basic as a first pass POC - search URLs store so much more than the search-term
 
     results = []
@@ -54,7 +55,7 @@ def google_search_urls(
 
         history_rec_details = {
             "source": "History",
-            "id": history_rec.rec_id,
+            "id": history_rec.record_location,
             "domain": urllib.parse.urlparse(history_rec.url).hostname,
             "timestamp": history_rec.visit_time,
         }
@@ -62,6 +63,7 @@ def google_search_urls(
         history_rec_details.update(search_details)
         results.append(history_rec_details)
 
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
     for cache_rec in profile.iterate_cache(url=SEARCH_URL_PATTERN, omit_cached_data=True):
         cache_url = cache_rec.key.url
         search_details = _get_search_details(cache_url)
@@ -72,7 +74,7 @@ def google_search_urls(
             "source": "Cache URLs",
             "id": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             "domain": urllib.parse.urlparse(cache_url).hostname,
-            "timestamp": cache_rec.metadata.response_time if cache_rec.metadata else None,
+            "timestamp": cache_rec.metadata.response_time if has_response_time and cache_rec.metadata else None,
         }
 
         cache_rec_details.update(search_details)
@@ -91,7 +93,7 @@ def google_search_urls(
 
         sess_rec_details = {
             "source": "Session Storage",
-            "id": sess_rec.leveldb_sequence_number,
+            "id": sess_rec.record_location,
             "domain": urllib.parse.urlparse(sess_rec.host).hostname,
             "timestamp": hsb_timestamp,
         }
@@ -109,7 +111,7 @@ __artifacts__ = (
         "Google",
         "Google searches",
         "Recovers google searches from URLs in history, session storage, cache",
-        "0.2",
+        "0.3",
         google_search_urls,
         ReportPresentation.table
     ),

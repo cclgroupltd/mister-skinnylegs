@@ -5,13 +5,14 @@ import abc
 
 from dataclasses import dataclass
 from collections.abc import Callable
-from ccl_chromium_reader import ChromiumProfileFolder
+#from ccl_chromium_reader import ChromiumProfileFolder
+from util.profile_folder_protocols import BrowserProfileProtocol
 
 
 JsonableType = typing.Union[
     None, int, float, str, bool, datetime.datetime, list["JsonableType"], dict[str, "JsonableType"]]
 LogFunction = Callable[[str], None]
-ArtifactFunction = Callable[[ChromiumProfileFolder, LogFunction, "ArtifactStorage"], "ArtifactResult"]
+ArtifactFunction = Callable[[BrowserProfileProtocol, LogFunction, "ArtifactStorage"], "ArtifactResult"]
 
 
 class ReportPresentation(enum.Enum):

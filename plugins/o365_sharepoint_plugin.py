@@ -7,6 +7,7 @@ import urllib.parse
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
+from util.profile_folder_protocols import BrowserProfileProtocol
 
 
 _GUID_FRAGMENT = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -79,11 +80,12 @@ def _parse_content_disposition(content_disp: str):
     return disp_type, params
 
 
-def _get_sharepoint_recent_files(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage):
+def _get_sharepoint_recent_files(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage):
     file_results = []
     id_to_filename: dict[str, set[str]] = {}
 
     # Get files first, go thumbnail hunting afterwards
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
     for cache_record in profile.iterate_cache(url=RECENT_FILES_SHAREPOINT_URL_PATTERN):
         if not cache_record.data:
             continue
@@ -106,7 +108,7 @@ def _get_sharepoint_recent_files(profile: ChromiumProfileFolder, log_func: LogFu
             file_results.append({
                 "cache record location": f"{cache_record.data_location.file_name}@{cache_record.data_location.offset}",
                 "cache request timestamp": cache_record.metadata.request_time,
-                "cache response timestamp": cache_record.metadata.response_time,
+                "cache response timestamp": cache_record.metadata.response_time if has_response_time else None,
                 "api endpoint cache url": cache_record.key.url,
                 "method": method,
                 "source": None,
@@ -167,9 +169,10 @@ def _get_sharepoint_recent_files(profile: ChromiumProfileFolder, log_func: LogFu
     return file_results
 
 
-def _get_edgeworth_recent_files(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage):
+def _get_edgeworth_recent_files(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage):
     file_results = []
     id_to_filename: dict[tuple[str, str], set[str]] = {}
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
 
     # Get files first, deal with thumbnails afterwards.
     for cache_record in profile.iterate_cache(url=RECENT_FILES_EDGEWORTH_URL_PATTERN):
@@ -200,7 +203,7 @@ def _get_edgeworth_recent_files(profile: ChromiumProfileFolder, log_func: LogFun
             file_results.append({
                 "cache record location": f"{cache_record.data_location.file_name}@{cache_record.data_location.offset}",
                 "cache request timestamp": cache_record.metadata.request_time,
-                "cache response timestamp": cache_record.metadata.response_time,
+                "cache response timestamp": cache_record.metadata.response_time if has_response_time else None,
                 "api endpoint cache url": cache_record.key.url,
                 "method": method,
                 "source": file.get("source"),
@@ -268,7 +271,7 @@ def _get_edgeworth_recent_files(profile: ChromiumProfileFolder, log_func: LogFun
     return file_results
 
 
-def get_recent_files(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_recent_files(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
     results.extend(_get_sharepoint_recent_files(profile, log_func, storage))
     results.extend(_get_edgeworth_recent_files(profile, log_func, storage))
@@ -288,9 +291,9 @@ def _is_downloads_activity_url(s: str) -> bool:
     return any(x.search(s) for x in DOWNLOADS_ACTIVITY_PATTERNS)
 
 
-def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_activity(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
-
+    has_response_time = isinstance(profile, ChromiumProfileFolder)
     # Stuff from the cache
     for cache_rec in profile.iterate_cache(url=_is_cache_activity_url):
         if cache_rec.metadata is None:
@@ -308,7 +311,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
 
             results.append({
                 "source": "Cache",
-                "timestamp": cache_rec.metadata.response_time,
+                "timestamp": cache_rec.metadata.request_time,
                 "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
                 "user ip address": cache_rec.metadata.get_attribute("x-userhostaddress")[0],
                 "event type": "Edit/View Session",
@@ -318,7 +321,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "filename": None,  # could correlate using file listings
 
                 "cache request timestamp": cache_rec.metadata.request_time,
-                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
                 "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             })
@@ -331,7 +334,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
 
             results.append({
                 "source": "Cache",
-                "timestamp": cache_rec.metadata.response_time,
+                "timestamp": cache_rec.metadata.request_time,
                 "user session id": None,
                 "user ip address": None,
                 "event type": "Download",
@@ -341,7 +344,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "filename": filename,
 
                 "cache request timestamp": cache_rec.metadata.request_time,
-                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
                 "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             })
@@ -350,7 +353,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
 
             results.append({
                 "source": "Cache",
-                "timestamp": cache_rec.metadata.response_time,
+                "timestamp": cache_rec.metadata.request_time,
                 "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
                 "user ip address": None,
                 "event type": "Download",
@@ -360,7 +363,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "filename": filename,
 
                 "cache request timestamp": cache_rec.metadata.request_time,
-                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
                 "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             })
@@ -371,7 +374,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
 
             results.append({
                 "source": "Cache",
-                "timestamp": cache_rec.metadata.response_time,
+                "timestamp": cache_rec.metadata.request_time,
                 "user session id": cache_rec.metadata.get_attribute("x-usersessionid")[0],
                 "user ip address": None,
                 "event type": "Download",
@@ -381,7 +384,7 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "filename": filename,
 
                 "cache request timestamp": cache_rec.metadata.request_time,
-                "cache response timestamp": cache_rec.metadata.response_time,
+                "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
                 "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             })
@@ -405,27 +408,34 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "filename": query.get("file", [""])[0],
 
                 "history_url": history_rec.url,
-                "history_id": history_rec.rec_id,
+                "history_id": history_rec.record_location,
 
             })
 
     # Downloads
-    downloads = {}  # collate downloads first to get the best version
-    chrome_epoch = datetime.datetime(1601, 1, 1)
-    for download in profile.iter_downloads(download_url=_is_downloads_activity_url):
-        if download.guid not in downloads:
-            downloads[download.guid] = download
-        elif ((download.hash and not downloads[download.guid].hash) or
-              (downloads[download.guid].end_time == chrome_epoch and download.end_time > chrome_epoch)):
-            downloads[download.guid] = download
+    # We treat Chrome differently because you can have multiple versions of the same download and we need to find the
+    # best one for our purposes:
+    is_chrome = isinstance(profile, ChromiumProfileFolder)
+    if isinstance(profile, ChromiumProfileFolder):
+        downloads = {}  # collate downloads first to get the best version
+        chrome_epoch = datetime.datetime(1601, 1, 1)
+        for download in profile.iter_downloads(download_url=_is_downloads_activity_url):
+            if download.guid not in downloads:
+                downloads[download.guid] = download
+            elif ((download.hash and not downloads[download.guid].hash) or
+                  (downloads[download.guid].end_time == chrome_epoch and download.end_time > chrome_epoch)):
+                downloads[download.guid] = download
+        download_recs = downloads.values()
+    else:
+        download_recs = profile.iter_downloads(download_url=_is_downloads_activity_url)
 
-    for download in downloads.values():
-        url = urllib.parse.urlparse(download.url_chain[-1])
+    for download in download_recs:
+        url = urllib.parse.urlparse(download.url)
         query = urllib.parse.parse_qs(url.query)
 
-        if DOWNLOAD_URL_PATTERN.search(download.url_chain[-1]):
+        if DOWNLOAD_URL_PATTERN.search(download.url):
             results.append({
-                "source": f"Downloads ({download.record_source.name})",
+                "source": f"Downloads ({download.record_location})",
                 "timestamp": download.start_time,
 
                 "user session id": None,
@@ -435,13 +445,12 @@ def get_activity(profile: ChromiumProfileFolder, log_func: LogFunction, storage:
                 "site sharepoint id": None,
                 "file unique sharepoint id": query.get("UniqueId", [""])[0].lower().strip("{}"),
                 "filename": None,
-
+                "download_size": download.file_size,
                 "download_target_path": download.target_path,
-                "download_sha256": download.hash,
-                "download_size": download.total_bytes,
                 "download_start_timestamp": download.start_time,
                 "download_end_timestamp": download.end_time,
-                "download_record_id": download.record_id,
+                "download_record_id": download.record_location,
+                "download_sha256": download.hash,
                 "download_guid": download.guid
             })
 
@@ -454,7 +463,7 @@ __artifacts__ = (
         "O365-Sharepoint",
         "O365-Sharepoint recent files",
         "Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365",
-        "0.1",
+        "0.2",
         get_recent_files,
         ReportPresentation.table
     ),
@@ -462,7 +471,7 @@ __artifacts__ = (
         "O365-Sharepoint",
         "O365-Sharepoint user activity",
         "Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365",
-        "0.1",
+        "0.2",
         get_activity,
         ReportPresentation.table
     ),

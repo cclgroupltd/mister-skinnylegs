@@ -2,10 +2,10 @@ import json
 import re
 
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from ccl_chromium_reader import ChromiumProfileFolder
+from util.profile_folder_protocols import BrowserProfileProtocol
 
 
-def get_messages(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     # This is a basic first pass at this, designed to adhere to a tabular output, in reality a custom report
     # format is more appropriate long-term, particularly when it comes to attachments
     results = []
