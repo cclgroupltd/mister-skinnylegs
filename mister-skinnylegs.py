@@ -36,7 +36,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 from ccl_chromium_reader import ChromiumProfileFolder
 from ccl_mozilla_reader import MozillaProfileFolder
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
@@ -379,28 +379,6 @@ if __name__ == "__main__":
         required=True,
         **output_folder_arg_args
     )
-
-    # arg_parser.add_argument(
-    #     "browser_type",
-    #     choices=["chromium", "mozilla"],
-    #     help="which browser folder type to process")
-    # arg_parser.add_argument(
-    #     "profile_folder",
-    #     type=pathlib.Path,
-    #     help="the path to the chrom(e|ium) profile folder")
-    # arg_parser.add_argument(
-    #     "output_folder",
-    #     type=pathlib.Path,
-    #     help="output folder for processed data - should not already exist")
-    # arg_parser.add_argument(
-    #     "-c", "--cache_folder",
-    #     action="store",
-    #     default=None,
-    #     dest="cache_folder",
-    #     type=pathlib.Path,
-    #     help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
-    #          "case on Android)")
-
 
     if "-l" in sys.argv or "--list_plugins" in sys.argv:
         print(BANNER)
