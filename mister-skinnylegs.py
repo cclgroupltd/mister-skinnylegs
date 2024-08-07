@@ -22,6 +22,7 @@ SOFTWARE.
 
 import csv
 import datetime
+import enum
 import json
 import sys
 import pathlib
@@ -33,8 +34,9 @@ from util.artifact_utils import ArtifactResult, ArtifactSpec, ReportPresentation
 from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
+from ccl_mozilla_reader import MozillaProfileFolder
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
@@ -60,6 +62,11 @@ class ExtendedEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+class BrowserType(enum.Enum):
+    chromium = 1
+    mozilla = 2
+
+
 class MisterSkinnylegs:
     """
     Mister Skinnylegs is a plugin framework for website/web app artifacts stored by a browser.
@@ -68,6 +75,7 @@ class MisterSkinnylegs:
             self,
             plugin_path: pathlib.Path,
             profile_path: pathlib.Path,
+            browser_type: BrowserType,
             storage_maker_func: colabc.Callable[[ArtifactSpec], ArtifactStorage],
             cache_folder: typing.Optional[pathlib.Path]=None,
             log_callback: typing.Optional[LogFunction]=None,
@@ -77,6 +85,7 @@ class MisterSkinnylegs:
 
         :param plugin_path: path to the folder of plugins .
         :param profile_path: path to the (Chrome/Chromium) browser profile folder.
+        :param browser_type: the browser type for this data
         :param storage_maker_func: a function which takes an ArtifactSpec object and returns an object that
                implements the ArtifactStorage interface.
         :param cache_folder:
@@ -92,12 +101,23 @@ class MisterSkinnylegs:
             raise NotADirectoryError(cache_folder)
 
         self._profile_folder_path = profile_path
+        self._browser_type = browser_type
         self._cache_folder_path = cache_folder
         self._storage_maker_func = storage_maker_func
         self._log_callback = log_callback or MisterSkinnylegs.log_fallback
 
+        match self._browser_type:
+            case BrowserType.chromium:
+                self._make_profile = lambda: ChromiumProfileFolder(
+                    self._profile_folder_path, cache_folder=self._cache_folder_path)
+            case BrowserType.mozilla:
+                self._make_profile = lambda: MozillaProfileFolder(self._profile_folder_path, self._cache_folder_path)
+            case _:
+                raise NotImplementedError(f"Browser type {self._browser_type} not supported")
+
     async def _run_artifact(self, spec: ArtifactSpec):
-        with ChromiumProfileFolder(self._profile_folder_path, cache_folder=self._cache_folder_path) as profile:
+        # with ChromiumProfileFolder(self._profile_folder_path, cache_folder=self._cache_folder_path) as profile:
+        with self._make_profile() as profile:
             result = spec.function(profile, self._log_callback, self._storage_maker_func(spec))
             return spec, {
                 "artifact_service": spec.service,
@@ -130,6 +150,10 @@ class MisterSkinnylegs:
     @property
     def profile_folder(self) -> pathlib.Path:
         return self._profile_folder_path
+
+    @property
+    def browser_type(self):
+        return self._browser_type
 
     @staticmethod
     def log_fallback(message: str):
@@ -190,6 +214,7 @@ def write_csv(csv_out: typing.TextIO, result: list):
 async def main(
         profile_input_folder: pathlib.Path,
         report_output_folder: pathlib.Path,
+        browser_type: BrowserType,
         cache_folder: typing.Optional[pathlib.Path]=None):
     print(BANNER)
 
@@ -199,6 +224,11 @@ async def main(
     if report_output_folder.exists():
         raise FileExistsError(f"Output folder {report_output_folder} already exists")
 
+    # checks for specific browser types
+    if browser_type == BrowserType.mozilla:
+        if cache_folder is None or not cache_folder.is_dir():
+            raise NotADirectoryError("Processing Mozilla requires a specific cache folder")
+
     report_output_folder.mkdir(parents=True)
     log_file = SimpleLog(report_output_folder / f"log_{datetime.datetime.now():%Y%m%d_%H%M%S}.log")
     log = log_file.log_message
@@ -206,6 +236,7 @@ async def main(
     mr_sl = MisterSkinnylegs(
         PLUGIN_PATH,
         profile_input_folder,
+        browser_type,
         lambda s: ArtifactFileSystemStorage(
             report_output_folder / sanitize_filename(s.service),
             sanitize_filename(s.name) + "_files"),
@@ -286,23 +317,6 @@ if __name__ == "__main__":
                     "profile folder.",
         exit_on_error=False
     )
-
-    arg_parser.add_argument(
-        "profile_folder",
-        type=pathlib.Path,
-        help="the path to the chrom(e|ium) profile folder")
-    arg_parser.add_argument(
-        "output_folder",
-        type=pathlib.Path,
-        help="output folder for processed data - should not already exist")
-    arg_parser.add_argument(
-        "-c", "--cache_folder",
-        action="store",
-        default=None,
-        dest="cache_folder",
-        type=pathlib.Path,
-        help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
-             "case on Android)")
     arg_parser.add_argument(
         "-l", "--list_plugins",
         action="store_true",
@@ -316,6 +330,78 @@ if __name__ == "__main__":
         help="list plugins as a markdown table and quit"
     )
 
+    profile_folder_arg_names = ["--profile-folder", "-p"]
+    profile_folder_arg_args = {"type": pathlib.Path, "dest": "profile_folder"}
+    output_folder_arg_names = ["--output-folder", "-o"]
+    output_folder_arg_args = {
+        "type": pathlib.Path, "dest": "output_folder",
+        "help": "output folder for processed data - should not already exist"}
+    cache_folder_arg_names = ["--cache-folder", "-c"]
+    cache_folder_arg_args = {"action": "store", "dest": "cache_folder", "type": pathlib.Path}
+
+    sub_parsers = arg_parser.add_subparsers(required=True, help="browsers", dest="browser_type")
+    chrome_parser = sub_parsers.add_parser("chromium")
+    mozilla_parser = sub_parsers.add_parser("mozilla")
+
+    chrome_parser.add_argument(
+        *profile_folder_arg_names,
+        required=True,
+        help="the path to the chrom(e|ium) profile folder",
+        **profile_folder_arg_args)
+    chrome_parser.add_argument(
+        *cache_folder_arg_names,
+        required=False,
+        default=None,
+        help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
+             "case on Android)",
+        **cache_folder_arg_args
+    )
+    chrome_parser.add_argument(
+        *output_folder_arg_names,
+        required=True,
+        **output_folder_arg_args
+    )
+    mozilla_parser.add_argument(
+        *profile_folder_arg_names,
+        required=True,
+        help="the path to the mozilla profile folder",
+        **profile_folder_arg_args
+    )
+    mozilla_parser.add_argument(
+        *cache_folder_arg_names,
+        required=True,
+        help="path to the cache folder (usually named 'cache2'); on most platforms this is stored outside of the "
+             "main profile folder.",
+        **cache_folder_arg_args
+    )
+    mozilla_parser.add_argument(
+        *output_folder_arg_names,
+        required=True,
+        **output_folder_arg_args
+    )
+
+    # arg_parser.add_argument(
+    #     "browser_type",
+    #     choices=["chromium", "mozilla"],
+    #     help="which browser folder type to process")
+    # arg_parser.add_argument(
+    #     "profile_folder",
+    #     type=pathlib.Path,
+    #     help="the path to the chrom(e|ium) profile folder")
+    # arg_parser.add_argument(
+    #     "output_folder",
+    #     type=pathlib.Path,
+    #     help="output folder for processed data - should not already exist")
+    # arg_parser.add_argument(
+    #     "-c", "--cache_folder",
+    #     action="store",
+    #     default=None,
+    #     dest="cache_folder",
+    #     type=pathlib.Path,
+    #     help="optional path to the cache folder, if it is not found directly within the profile folder (e.g.,as is the "
+    #          "case on Android)")
+
+
     if "-l" in sys.argv or "--list_plugins" in sys.argv:
         print(BANNER)
         list_plugins()
@@ -327,5 +413,7 @@ if __name__ == "__main__":
         exit(0)
 
     args = arg_parser.parse_args()
+    print(args)
 
-    asyncio.run(main(args.profile_folder, args.output_folder, cache_folder=args.cache_folder))
+    asyncio.run(
+        main(args.profile_folder, args.output_folder, BrowserType[args.browser_type], cache_folder=args.cache_folder))

@@ -1,1 +1,2 @@
 ccl_chromium_reader @ git+https://github.com/cclgroupltd/ccl_chrome_indexeddb.git
+ccl_mozilla_reader @ git+https://github.com/cclgroupltd/ccl_mozilla_reader.git
