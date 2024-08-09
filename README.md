@@ -43,7 +43,7 @@ the following (substitute "py" for "python" if not on Windows):
 
 ```commandline
 py -m venv .venv
-./.venv/Scripts/activiate
+./.venv/Scripts/activate
 pip install -r requirements.txt
 ```
 
