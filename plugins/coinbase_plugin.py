@@ -16,7 +16,10 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
         data = cache_data.get("data", {})
         viewer = data.get("viewer", {})
         payment_methods = viewer.get("paymentMethodsV2", [])
-        log_func("No payment methods identified")
+
+        if not payment_methods:
+            log_func("No payment methods identified")
+
         for entry in payment_methods:
             result = { 
                 "UUID": entry.get('uuid'),
@@ -84,10 +87,14 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
     
         data = cache_data.get("data")
         viewer = data.get("viewer")
+        
         receive_accounts = viewer.get('receiveAccounts', [])
-        log_func("No receive accounts identified.")
+        if not receive_accounts:
+            log_func("No receive accounts identified.")
+
         send_accounts = viewer.get('sendAccounts', [])
-        log_func("No send accounts identified")
+        if not receive_accounts:
+            log_func("No send accounts identified")
 
         for item in receive_accounts:
             available_balance = item['availableBalance']
