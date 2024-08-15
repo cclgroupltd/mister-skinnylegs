@@ -93,7 +93,7 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
             log_func("No receive accounts identified.")
 
         send_accounts = viewer.get('sendAccounts', [])
-        if not receive_accounts:
+        if not send_accounts:
             log_func("No send accounts identified")
 
         for item in receive_accounts:
