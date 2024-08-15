@@ -8,15 +8,15 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
     results_dups = []
     results = []
 
-    url_pattern = re.compile(r"https://www.coinbase.com/graphql/query\?&operationName=usePaymentMethodsQuery")
+    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaymentMethodsQuery")
 
     for cache_rec in profile.iterate_cache(url=url_pattern):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
-        data =cache_data.get("data")
-        viewer = data.get("viewer")
-        payment_methods = viewer.get("paymentMethodsV2")
-
+        data = cache_data.get("data", {})
+        viewer = data.get("viewer", {})
+        payment_methods = viewer.get("paymentMethodsV2", [])
+        log_func("No payment methods identified")
         for entry in payment_methods:
             result = { 
                 "UUID": entry.get('uuid'),
@@ -29,7 +29,8 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
                 "Instant Sell Enabled": entry.get('instantSell'),
                 "Created At": entry.get('createdAt'),
                 "Updated At": entry.get('updatedAt'),
-                "Verified": entry.get('verified')
+                "Verified": entry.get('verified'),
+                "Data Location": str(cache_rec.data_location)
             }
             results_dups.append(result)
                 
@@ -42,14 +43,14 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
 def get_coinbase_userdetails(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
-    url_pattern = re.compile(r"https://www.coinbase.com/graphql/query\?&operationName=userQuery")
+    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=userQuery")
 
     for cache_rec in profile.iterate_cache(url=url_pattern):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
-        data = cache_data.get("data")
-        viewer = data.get("viewer")
-        user_properties = viewer.get("userProperties")
+        data = cache_data.get("data", {})
+        viewer = data.get("viewer", {})
+        user_properties = viewer.get("userProperties") # should always exist since user information is a requirement to use the coinbase website.
         email = user_properties.get('email')
         personal_details = user_properties.get("personalDetails")
         legal_names = personal_details.get("legalName")
@@ -63,7 +64,8 @@ def get_coinbase_userdetails(profile: BrowserProfileProtocol, log_func: LogFunct
             "Last Name": legal_names['lastName'],
             "Email": email,
             "Date of Birth": dob,
-            "Address": address_full
+            "Address": " ".join(address_full),
+            "Data Location": str(cache_rec.data_location)
         }
 
         results.append(result)
@@ -74,7 +76,7 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
     results_dups = []
     results = []
 
-    url_pattern = re.compile(r"https://www.coinbase.com/graphql/query\?&operationName=SendReceivePreloadable")
+    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=SendReceivePreloadable")
 
     for cache_rec in profile.iterate_cache(url=url_pattern):
         
@@ -82,8 +84,10 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
     
         data = cache_data.get("data")
         viewer = data.get("viewer")
-        receive_accounts = viewer.get('receiveAccounts')
-        send_accounts = viewer.get('sendAccounts')
+        receive_accounts = viewer.get('receiveAccounts', [])
+        log_func("No receive accounts identified.")
+        send_accounts = viewer.get('sendAccounts', [])
+        log_func("No send accounts identified")
 
         for item in receive_accounts:
             available_balance = item['availableBalance']
@@ -94,7 +98,8 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
                 "Type": item['type'],
                 "Currency": available_balance['currency'],
                 "Name": asset['name'],
-                "Balance": available_balance['value']
+                "Balance": available_balance['value'],
+                "Data Location": str(cache_rec.data_location)
             }
 
             results_dups.append(result)
@@ -108,14 +113,15 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
                 "Type": item['type'],
                 "Currency": available_balance['currency'],
                 "Name": asset['name'],
-                "Balance": available_balance['value']
+                "Balance": available_balance['value'],
+                "Data Location": str(cache_rec.data_location)
             }
-
+            
             results_dups.append(result)
 
-            for items in results_dups:
-                if items not in results:
-                    results.append(items)
+        for items in results_dups:
+            if items not in results:  # slow but ultimately fine
+                results.append(items)
 
     return ArtifactResult(results)
 
