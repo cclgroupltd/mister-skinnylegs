@@ -134,7 +134,7 @@ functionality for that artifact.
 The plugin functions are required to have the following signature:
 
 ```python
-def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def example_artifact1(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     ...
 ```
 
