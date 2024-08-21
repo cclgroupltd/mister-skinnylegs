@@ -9,24 +9,6 @@ from util.profile_folder_protocols import BrowserProfileProtocol
 SEARCH_URL_PATTERN = re.compile(r"https?://.*chatgpt.*?\.[A-z]{2,3}/c/[0-9a-fA-F\-]{36}$")
 
 
-def chatgpt_chat_urls(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
-    results = []
-
-    for history_rec in profile.iterate_history_records(url=SEARCH_URL_PATTERN):
-        results.append(
-            {
-                "Timestamp": history_rec.visit_time,
-                "Title": history_rec.title,
-                "Original URL": history_rec.url,
-                "Source": "History",
-                "Data Location": history_rec.record_location,
-            }
-        )
-
-    results.sort(key=lambda x: x["Timestamp"])
-    return ArtifactResult(results)
-
-
 def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
@@ -45,13 +27,29 @@ def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
             result = { 
                 "ID": str(id),
                 "Title": str(title),
-                "Created Time": create_time,
-                "Updated Time": update_time,
+                "History Timestamp": "N/A",
+                "Chat Created Time": create_time,
+                "Chat Updated Time": update_time,
+                "Original URL": "N/A",
                 "Source": "Cache",
                 "Data Location": str(cache_rec.data_location)
             }
 
             results.append(result)
+
+    for history_rec in profile.iterate_history_records(url=SEARCH_URL_PATTERN):
+        results.append(
+            {
+                "ID": history_rec.url[-36:],
+                "Title": history_rec.title,
+                "History Timestamp": history_rec.visit_time,
+                "Chat Created Time": "Unknown",
+                "Chat Updated Time": "Unknown",
+                "Original URL": history_rec.url,
+                "Source": "History",
+                "Data Location": history_rec.record_location,
+            }
+        )
 
     return ArtifactResult(results)
 
@@ -88,16 +86,8 @@ def get_chatgpt_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
 __artifacts__ = (
     ArtifactSpec(
         "ChatGPT",
-        "ChatGPT Chat URLs and Titles",
-        "Recovers ChatGPT chat titles and URLs from History",
-        "0.1",
-        chatgpt_chat_urls,
-        ReportPresentation.table
-    ),
-    ArtifactSpec(
-        "ChatGPT",
         "ChatGPT Chat Information",
-        "Recovers ChatGPT chat titles, creation and update times from Cache",
+        "Recovers ChatGPT chat information from History and Cache",
         "0.1",
         get_chatgpt_chatinfo,
         ReportPresentation.table
