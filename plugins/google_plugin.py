@@ -11,7 +11,7 @@ from util.profile_folder_protocols import BrowserProfileProtocol
 
 
 EPOCH = datetime.datetime(1970, 1, 1)
-SEARCH_URL_PATTERN = re.compile(r"https?://.+google.*?\.[A-z]{2,3}/search")
+SEARCH_URL_PATTERN = re.compile(r"https?://.*google.*?\.[A-z]{2,3}/search")
 
 
 def parse_unix_seconds(secs):
@@ -55,7 +55,7 @@ def google_search_urls(
 
         history_rec_details = {
             "source": "History",
-            "id": history_rec.record_location,
+            "location": history_rec.record_location,
             "domain": urllib.parse.urlparse(history_rec.url).hostname,
             "timestamp": history_rec.visit_time,
         }
@@ -72,7 +72,7 @@ def google_search_urls(
 
         cache_rec_details = {
             "source": "Cache URLs",
-            "id": f"{cache_rec.metadata_location}",
+            "location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             "domain": urllib.parse.urlparse(cache_url).hostname,
             "timestamp": cache_rec.metadata.request_time
         }
@@ -93,7 +93,7 @@ def google_search_urls(
 
         sess_rec_details = {
             "source": "Session Storage",
-            "id": sess_rec.record_location,
+            "location": sess_rec.record_location,
             "domain": urllib.parse.urlparse(sess_rec.host).hostname,
             "timestamp": hsb_timestamp,
         }
@@ -111,7 +111,7 @@ __artifacts__ = (
         "Google",
         "Google searches",
         "Recovers google searches from URLs in history, session storage, cache",
-        "0.3",
+        "0.4",
         google_search_urls,
         ReportPresentation.table
     ),

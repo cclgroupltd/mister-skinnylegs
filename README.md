@@ -14,19 +14,24 @@ plugins against a Chrome or Chromium Profile Folder.
 ## Current Plugins
 | Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
 |---------------------------|-----------------|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------------|
+| bing_plugin.py            | Bing            | Bing searches                         | 0.1     | Recovers Bing searches from URLs in history, cache                                                        |
+| coinbase_plugin.py        | Coinbase        | Coinbase Payment Methods              | 0.1     | Recovers Coinbase Payement Methods records from the Cache                                                 |
+| coinbase_plugin.py        | Coinbase        | Coinbase User Details                 | 0.1     | Recovers Coinbase User Details records from the Cache                                                     |
+| coinbase_plugin.py        | Coinbase        | Coinbase Balances                     | 0.1     | Recovers Coinbase Balances records from the Cache                                                         |
 | discord_plugin.py         | Discord         | Discord Chat Messages                 | 0.1     | Recovers Discord chat messages from the Cache                                                             |
-| dropbox_plugin.py         | Dropbox         | Dropbox Session Storage User Activity | 0.2     | Recovers user activity from 'uxa' records in Session Storage                                              |
+| dropbox_plugin.py         | Dropbox         | Dropbox Session Storage User Activity | 0.3     | Recovers user activity from 'uxa' records in Session Storage                                              |
 | dropbox_plugin.py         | Dropbox         | Dropbox File System                   | 0.2     | Recovers a partial file system from URLs in the history                                                   |
-| dropbox_plugin.py         | Dropbox         | Dropbox Thumbnails                    | 0.3     | Recovers thumbnails for files stored in Dropbox                                                           |
+| dropbox_plugin.py         | Dropbox         | Dropbox Thumbnails                    | 0.4     | Recovers thumbnails for files stored in Dropbox                                                           |
+| duckduckgo_plugin.py      | Duckduckgo      | Duckduckgo searches                   | 0.1     | Recovers Duckduckgo searches from URLs in history, cache                                                  |
 | google_drive_plugin.py    | Google Drive    | Google Drive Files and Folders        | 0.2     | Recovers Google Drive and Docs folder and file names (and urls) from history records                      |
 | google_drive_plugin.py    | Google Drive    | Google Drive Thumbnails               | 0.2     | Recovers Google Drive thumbnails from the cache                                                           |
 | google_drive_plugin.py    | Google Drive    | Google Drive Usage                    | 0.2     | Recovers indications of Google Drive usage                                                                |
-| google_plugin.py          | Google          | Google searches                       | 0.2     | Recovers google searches from URLs in history, session storage, cache                                     |
-| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.1     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
-| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.1     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
-| storage_dump_plugin.py    | Data Dump       | History                               | 0.1     | Dumps History Records                                                                                     |
-| storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.1     | Dumps Download Records                                                                                    |
-| storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.1     | Dumps Localstorage Records                                                                                |
+| google_plugin.py          | Google          | Google searches                       | 0.4     | Recovers google searches from URLs in history, session storage, cache                                     |
+| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.2     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
+| o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.2     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
+| storage_dump_plugin.py    | Data Dump       | History                               | 0.2     | Dumps History Records                                                                                     |
+| storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.2     | Dumps Download Records                                                                                    |
+| storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.2     | Dumps Localstorage Records                                                                                |
 | storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
 
 
@@ -134,7 +139,7 @@ functionality for that artifact.
 The plugin functions are required to have the following signature:
 
 ```python
-def example_artifact1(profile: ChromiumProfileFolder, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def example_artifact1(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     ...
 ```
 
