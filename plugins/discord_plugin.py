@@ -31,7 +31,7 @@ def get_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage
                 "attachments": attachments,
                 "message reference": message_reference,
                 "cache_url": cache_rec.key.url,
-                "data location": f"{cache_rec.data_location.file_name}@{cache_rec.data_location.offset}"
+                "data location": f"{cache_rec.data_location}"
             })
 
     results.sort(key=lambda x: (x["channel id"], x["timestamp"]))

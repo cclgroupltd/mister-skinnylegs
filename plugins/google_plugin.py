@@ -74,7 +74,7 @@ def google_search_urls(
             "source": "Cache URLs",
             "location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
             "domain": urllib.parse.urlparse(cache_url).hostname,
-            "timestamp": cache_rec.metadata.response_time if has_response_time and cache_rec.metadata else None,
+            "timestamp": cache_rec.metadata.request_time
         }
 
         cache_rec_details.update(search_details)

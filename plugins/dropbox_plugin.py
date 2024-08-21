@@ -49,7 +49,7 @@ def uax_records(profile: BrowserProfileProtocol, log_func: LogFunction, storage:
                  "time on page": clicked_link_obj["time on page"],
                  "previous url": clicked_link_obj["url"]})
 
-    result.sort(key=lambda x: x["sequence"])
+    result.sort(key=lambda x: x["record location"])
     return ArtifactResult(result)
 
 
