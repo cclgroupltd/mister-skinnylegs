@@ -36,7 +36,7 @@ from util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 from ccl_chromium_reader import ChromiumProfileFolder
 from ccl_mozilla_reader import MozillaProfileFolder
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
@@ -273,6 +273,7 @@ async def main(
             csv_out_path = out_file_path.with_suffix(".csv")
             log(f"Generating csv output at {csv_out_path}")
             with csv_out_path.open("xt", encoding="utf-8", newline="") as csv_out:
+                csv_out.write("\ufeff")
                 write_csv(csv_out, result["result"])
 
     log("")
