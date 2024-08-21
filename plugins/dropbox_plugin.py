@@ -46,7 +46,7 @@ def uax_records(profile: BrowserProfileProtocol, log_func: LogFunction, storage:
                  "record type": "clicked link",
                  "visit id": clicked_link_obj["visit_id"],
                  "url": clicked_link_obj["origin_href"],
-                 "time on page": clicked_link_obj["time on page"],
+                 "time on page": clicked_link_obj["time_on_page"],
                  "previous url": clicked_link_obj["url"]})
 
     result.sort(key=lambda x: x["record location"])
