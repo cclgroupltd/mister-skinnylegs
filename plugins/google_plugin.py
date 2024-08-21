@@ -72,7 +72,7 @@ def google_search_urls(
 
         cache_rec_details = {
             "source": "Cache URLs",
-            "location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+            "location": str(cache_rec.metadata_location),
             "domain": urllib.parse.urlparse(cache_url).hostname,
             "timestamp": cache_rec.metadata.request_time
         }

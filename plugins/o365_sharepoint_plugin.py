@@ -323,7 +323,7 @@ def get_activity(profile: BrowserProfileProtocol, log_func: LogFunction, storage
                 "cache request timestamp": cache_rec.metadata.request_time,
                 "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
-                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+                "cache_meta_location": str(cache_rec.metadata_location),
             })
         elif DOWNLOAD_URL_PATTERN.search(cache_rec.key.url):
             doc_id = cache_rec.metadata.get_attribute("docid")[0]
@@ -346,7 +346,7 @@ def get_activity(profile: BrowserProfileProtocol, log_func: LogFunction, storage
                 "cache request timestamp": cache_rec.metadata.request_time,
                 "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
-                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+                "cache_meta_location": str(cache_rec.metadata_location),
             })
         elif EXCEL_GET_FILE_COPY_URL_PATTERN.search(cache_rec.key.url):
             filename = query.get("workbookFilename")[0]
@@ -365,7 +365,7 @@ def get_activity(profile: BrowserProfileProtocol, log_func: LogFunction, storage
                 "cache request timestamp": cache_rec.metadata.request_time,
                 "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
-                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+                "cache_meta_location": str(cache_rec.metadata_location),
             })
         elif EXCEL_FILE_FILE_HANDLER_PATTERN.search(cache_rec.key.url):
             disp_type, filenames = _parse_content_disposition(
@@ -386,7 +386,7 @@ def get_activity(profile: BrowserProfileProtocol, log_func: LogFunction, storage
                 "cache request timestamp": cache_rec.metadata.request_time,
                 "cache response timestamp": cache_rec.metadata.response_time if has_response_time else None,
                 "cache_url": cache_rec.key.url,
-                "cache_meta_location": f"{cache_rec.metadata_location.file_name}@{cache_rec.metadata_location.offset}",
+                "cache_meta_location": str(cache_rec.metadata_location),
             })
 
     # History things
