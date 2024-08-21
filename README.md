@@ -77,27 +77,66 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Default
 ```
 
 ### Using the CLI
-Once the tool is set up, it can be run from the command line. The tool takes
-two arguments:
-* The path to the profile folder
-* An output folder path (the folder should not exist yet)
+Once the tool is set up, it can be run from the command line. The command line 
+interface begins with the browser type to be processed followed by options 
+specific to that browser. The browser types currently supported by the tool 
+are:
+
+* `chromium`
+* `mozilla`
+
+To see command line help for the specific browser type, you can use the
+`--help` command line option, e.g.,
 
 ```commandline
-py .\mister-skinnylegs.py "c:\Users\you\AppData\Local\Google\Chrome\User Data\Profile 1" output_folder
+py .\mister-skinnylegs.py chromium --help
 ```
 
-This will run every plugin found in the `plugins` folder against the profile
-folder, generating output in the output folder. All plugins at least generate
-a json file per artifact, but other outputs may also be created depending on
-the plugin.
+By default, using the tool will run every plugin found in the `plugins` 
+folder against the profile folder, generating output in the output folder. 
+All plugins at least generate a json file per artifact, but other outputs 
+may also be created depending on the plugin. In this version, if you want
+to omit a plugin from the process, you will need to remove it from the 
+`plugins` folder.
 
-There is an additional command line argument if you need to point the tool at
-a cache folder from outside of the profile folder (such as is the case with 
-Android for example):
+#### chromium
+This mode is designed to be used with data from Chrome and other browsers 
+which are based on Chromium and closely follow Chrome's implementation of 
+the key artefacts (e.g., Edge).
 
+It requires two parameters:
+* `-p <PROFILE_FOLDER_PATH>`
+* `-o <OUTPUT_FOLDER_PATH>` 
+
+*(NB the folder for the output path should not already exist).*
+
+It can optionally take the following parameter:
+* `-c <CACHE_FOLDER_PATH>`
+
+The cache folder parameter is for if you need to point the tool at
+a cache folder located outside the profile folder (e.g., in the case of 
+Android).
+
+Example:
 ```commandline
-py .\mister-skinnylegs.py --cache_folder "C:\Users\you\external_cache_here\Cache_Data" "c:\Users\you\AppData\Local\Google\Chrome\User Data\Profile 1" output_folder
+py .\mister-skinnylegs.py chromium -p "c:\Users\you\AppData\Local\Google\Chrome\User Data\Profile 1" -o .\output_folder
+```
 
+#### mozilla
+This mode is designed to be used with data from the Mozilla Firefox browser
+or another browser based on Firefox which closely follows the layout of
+data used in Firefox.
+
+It requires three parameters:
+* `-p <PROFILE_FOLDER_PATH>`
+* `-c <CACHE_FOLDER_PATH>`
+* `-o <OUTPUT_FOLDER_PATH>` 
+
+*(NB the folder for the output path should not already exist).*
+
+Example:
+```commandline
+py .\mister-skinnylegs.py mozilla -p "C:\Users\you\AppData\Roaming\Mozilla\Firefox\Profiles\a4pugz09.default-release" -c "C:\Users\you\AppData\Local\Mozilla\Firefox\Profiles\a4pugz09.default-release\cache2" -o .\output_folder
 ```
 
 ## Contributing
