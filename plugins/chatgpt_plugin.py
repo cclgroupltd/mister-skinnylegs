@@ -6,26 +6,26 @@ from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, Repor
 from util.profile_folder_protocols import BrowserProfileProtocol
 
 
-SEARCH_URL_PATTERN = re.compile(r"https?://.*chatgpt.*?\.[A-z]{2,3}/c/[0-9a-fA-F\-]{36}$")
+CONVERSATION_API_URL_PATTERN = re.compile(r"chatgpt.*?\.[A-z]{2,3}/backend-api/conversations\?offset")
+CONVERSATION_URL_PATTERN = re.compile(r"https?://.*chatgpt.*?\.[A-z]{2,3}/c/[0-9a-fA-F\-]{36}$")
+USER_DETAILS_API_URL_PATTERN = re.compile(r"chatgpt.*?\.[A-z]{2,3}/backend-api/me")
 
 
 def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
-
-    url_pattern = re.compile(r"chatgpt.*?\.[A-z]{2,3}/backend-api/conversations\?offset")
     
-    for cache_rec in profile.iterate_cache(url=url_pattern):
+    for cache_rec in profile.iterate_cache(url=CONVERSATION_API_URL_PATTERN):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
         items = cache_data.get("items", {})
         for chat_item in items:
-            id = chat_item.get("id")
+            chat_id = chat_item.get("id")
             title = chat_item.get("title") or None
             create_time = chat_item.get("create_time")
             update_time = chat_item.get("update_time")
 
             result = { 
-                "ID": str(id),
+                "ID": str(chat_id),
                 "Title": str(title),
                 "History Timestamp": "N/A",
                 "Chat Created Time": create_time,
@@ -37,7 +37,7 @@ def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
 
             results.append(result)
 
-    for history_rec in profile.iterate_history_records(url=SEARCH_URL_PATTERN):
+    for history_rec in profile.iterate_history_records(url=CONVERSATION_URL_PATTERN):
         results.append(
             {
                 "ID": history_rec.url[-36:],
@@ -57,9 +57,7 @@ def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
 def get_chatgpt_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
-    url_pattern = re.compile(r"chatgpt.*?\.[A-z]{2,3}/backend-api/me")
-
-    for cache_rec in profile.iterate_cache(url=url_pattern):
+    for cache_rec in profile.iterate_cache(url=USER_DETAILS_API_URL_PATTERN):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
         name = cache_data.get("name")
@@ -67,7 +65,6 @@ def get_chatgpt_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
         phone_number = cache_data.get("phone_number")
         created = cache_data.get("created")
         standard_timestamp = datetime.fromtimestamp(created)
-
     
         result = {
             "Created": str(standard_timestamp),
