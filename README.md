@@ -15,6 +15,8 @@ plugins against a Chrome or Chromium Profile Folder.
 | Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
 |---------------------------|-----------------|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------------|
 | bing_plugin.py            | Bing            | Bing searches                         | 0.1     | Recovers Bing searches from URLs in history, cache                                                        |
+| chatgpt_plugin.py         | ChatGPT         | ChatGPT Chat Information              | 0.1     | Recovers ChatGPT chat information from History and Cache                                                  |
+| chatgpt_plugin.py         | ChatGPT         | ChatGPT User Information              | 0.1     | Recovers ChatGPT user information from Cache                                                              |
 | coinbase_plugin.py        | Coinbase        | Coinbase Payment Methods              | 0.1     | Recovers Coinbase Payement Methods records from the Cache                                                 |
 | coinbase_plugin.py        | Coinbase        | Coinbase User Details                 | 0.1     | Recovers Coinbase User Details records from the Cache                                                     |
 | coinbase_plugin.py        | Coinbase        | Coinbase Balances                     | 0.1     | Recovers Coinbase Balances records from the Cache                                                         |
