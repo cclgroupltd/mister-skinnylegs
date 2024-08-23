@@ -8,10 +8,12 @@ from util.profile_folder_protocols import BrowserProfileProtocol
 BALANCES_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=SendReceivePreloadable")
 USER_DETAILS_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=userQuery")
 PAYMENT_METHODS_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaymentMethodsQuery")
+
 TRANSACTION_PATTERNS = [
-        re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AssetPagePortfolioWalletQuery"),
-        re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AccountActivityRedesignedQuery")
-    ]
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AssetPagePortfolioWalletQuery"),
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AccountActivityRedesignedQuery"),
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaginatedAccount")
+]
 
 
 def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
@@ -145,135 +147,78 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
 def get_coinbase_transactions(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
+    def process_transaction_node(node, log_func):
+        category = node.get('category')
+        details = node.get('details')
+        created_at = node.get("createdAt")
+        title = node.get('title')
+        amount = node.get('amount')
+        currency = amount.get('currency')  
+        value = amount.get('value')
+
+        if category in ['CRYPTO_SEND', 'CRYPTO_RECEIVE']:
+            address = details.get('cryptoSendRecipient', {}).get('address', 'Unknown') # no receive address details so always 'unknown'
+            transaction_url = details.get('transactionUrl', "N/A")
+            payment_methods = "N/A"
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        elif category in ['BUY', 'SELL', 'CONVERT']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = details.get('paymentMethod', "N/A")    
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        elif category in ['FIAT_WITHDRAWAL', 'FIAT_DEPOSIT', 'USER_RECEIVE']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = "N/A"            
+            withdraw_to = details.get('to', "N/A")
+            deposit_from = details.get('from', "N/A")
+
+        elif category in ['UNSTAKING', 'STAKING', 'INTEREST']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = "N/A"
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        else: 
+            log_func("ERROR - Unknown transaction category identified.")
+
+        return {
+            "Created Date/Time": created_at,
+            "Category": category,
+            "Type": title,
+            "Currency": currency,
+            "Value": value,
+            "Address": address,
+            "Transaction URL": transaction_url,
+            "Payment Method": payment_methods,
+            "Withdraw To": withdraw_to,
+            "Deposit From": deposit_from,
+            "Source": "Cache"
+        }
+
     for url_pattern in TRANSACTION_PATTERNS:
         for cache_rec in profile.iterate_cache(url=url_pattern):
             cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
-            data = cache_data.get("data")
-            viewer = data.get("viewer")
-            account_by_uuid = viewer.get("accountByUuidV2")
-            account_history_entries = account_by_uuid.get("accountHistoryEntries")
+            if "viewer" in cache_data.get("data", {}):
+                data_node = cache_data["data"].get("viewer", {}).get("accountByUuidV2", {})
+
+            else:
+                data_node = cache_data.get("data", {}).get("node", {}) # '&operationName=usePaginatedAccount'stores the transaction data slightly differently
+
+            account_history_entries = data_node.get("accountHistoryEntries", {})
             edges = account_history_entries.get('edges', [])
 
             for edge in edges:
-                node = edge.get('node')
-
-                created_at = node.get("createdAt")
-                title = node.get('title')
-                amount = node.get('amount')
-                currency = amount.get('currency')
-                value = amount.get('value')
-                category = node.get('category')
-
-                details = node.get('details')
-                if details:
-                    send_recipent = details.get('cryptoSendRecipient')
-                    transaction_url = details.get('transactionUrl')
-                    payment_methods = details.get('paymentMethod')
-                    withdraw_to = details.get('to')
-                    desposit_from = details.get('from')
-
-                if category == 'CRYPTO_SEND':
-                    address = send_recipent['address']
-                    transaction_url = transaction_url
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-
-                elif category == 'CRYPTO_RECEIVE':
-                    address = str('Unknown')
-                    transaction_url = transaction_url
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-                    
-                elif category == 'BUY':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = payment_methods
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == 'SELL':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = payment_methods
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == 'FIAT_WITHDRAWAL':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = withdraw_to
-                    desposit_from = str("N/A")
-
-                elif category == 'FIAT_DEPOSIT':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = desposit_from
-
-                elif category == 'UNSTAKING':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == 'STAKING':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == 'INTEREST':
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == "CONVERT":
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = payment_methods
-                    withdraw_to = str("N/A")
-                    desposit_from = str("N/A")
-
-                elif category == "USER_RECEIVE":
-                    address = str('N/A')
-                    transaction_url = str('N/A')
-                    payment_methods = str('N/A')
-                    withdraw_to = str("N/A")
-                    desposit_from = desposit_from
-
-                else:
-                    log_func("ERROR - Unknown transaction category identified.")
-                    address = None
-                    transaction_url = None
-                    payment_methods = None
-                    withdraw_to = None
-                    desposit_from = None
-
-                result = {
-                    "Created Date/Time": str(created_at),
-                    "Category": str(category),
-                    "Type": str(title),
-                    "Currency": str(currency),
-                    "Value": str(value),
-                    "Address": str(address),
-                    "Transaction URL": str(transaction_url),
-                    "Payment Method": str(payment_methods),
-                    "Withdraw To": str(withdraw_to),
-                    "Deposit From": str(desposit_from),
-                    "Source": "Cache",
-                    "Data Location": str(cache_rec.data_location)
-                }
-                results.append(result)
+                result = process_transaction_node(edge.get('node'), log_func)
+                if result:
+                    result["Data Location"] = str(cache_rec.data_location)
+                    results.append(result)
 
     return ArtifactResult(results)
 
