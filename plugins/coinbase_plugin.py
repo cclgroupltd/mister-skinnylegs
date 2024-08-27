@@ -4,13 +4,23 @@ import re
 from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from util.profile_folder_protocols import BrowserProfileProtocol
 
+
+BALANCES_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=SendReceivePreloadable")
+USER_DETAILS_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=userQuery")
+PAYMENT_METHODS_PATTERN = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaymentMethodsQuery")
+
+TRANSACTION_PATTERNS = [
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AssetPagePortfolioWalletQuery"),
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=AccountActivityRedesignedQuery"),
+    re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaginatedAccount")
+]
+
+
 def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results_dups = []
     results = []
 
-    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=usePaymentMethodsQuery")
-
-    for cache_rec in profile.iterate_cache(url=url_pattern):
+    for cache_rec in profile.iterate_cache(url=PAYMENT_METHODS_PATTERN):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
         data = cache_data.get("data", {})
@@ -33,6 +43,7 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
                 "Created At": entry.get('createdAt'),
                 "Updated At": entry.get('updatedAt'),
                 "Verified": entry.get('verified'),
+                "Source": "Cache",
                 "Data Location": str(cache_rec.data_location)
             }
             results_dups.append(result)
@@ -43,12 +54,11 @@ def get_coinbase_paymentmethods(profile: BrowserProfileProtocol, log_func: LogFu
 
     return ArtifactResult(results)
 
+
 def get_coinbase_userdetails(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
-    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=userQuery")
-
-    for cache_rec in profile.iterate_cache(url=url_pattern):
+    for cache_rec in profile.iterate_cache(url=USER_DETAILS_PATTERN):
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
         data = cache_data.get("data", {})
@@ -68,6 +78,7 @@ def get_coinbase_userdetails(profile: BrowserProfileProtocol, log_func: LogFunct
             "Email": email,
             "Date of Birth": dob,
             "Address": " ".join(address_full),
+            "Source": "Cache",
             "Data Location": str(cache_rec.data_location)
         }
 
@@ -75,13 +86,12 @@ def get_coinbase_userdetails(profile: BrowserProfileProtocol, log_func: LogFunct
 
     return ArtifactResult(results)
 
+
 def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results_dups = []
     results = []
 
-    url_pattern = re.compile(r"coinbase.*?\.[A-z]{2,3}/graphql/query\?&operationName=SendReceivePreloadable")
-
-    for cache_rec in profile.iterate_cache(url=url_pattern):
+    for cache_rec in profile.iterate_cache(url=BALANCES_PATTERN):
         
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
@@ -106,6 +116,7 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
                 "Currency": available_balance['currency'],
                 "Name": asset['name'],
                 "Balance": available_balance['value'],
+                "Source": "Cache",
                 "Data Location": str(cache_rec.data_location)
             }
 
@@ -132,6 +143,86 @@ def get_coinbase_balances(profile: BrowserProfileProtocol, log_func: LogFunction
 
     return ArtifactResult(results)
 
+
+def get_coinbase_transactions(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+    results = []
+
+    def process_transaction_node(node, log_func):
+        category = node.get('category')
+        details = node.get('details')
+        created_at = node.get("createdAt")
+        title = node.get('title')
+        amount = node.get('amount')
+        currency = amount.get('currency')  
+        value = amount.get('value')
+
+        if category in ['CRYPTO_SEND', 'CRYPTO_RECEIVE']:
+            address = details.get('cryptoSendRecipient', {}).get('address', 'Unknown') # no receive address details so always 'unknown'
+            transaction_url = details.get('transactionUrl', "N/A")
+            payment_methods = "N/A"
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        elif category in ['BUY', 'SELL', 'CONVERT']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = details.get('paymentMethod', "N/A")    
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        elif category in ['FIAT_WITHDRAWAL', 'FIAT_DEPOSIT', 'USER_RECEIVE']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = "N/A"            
+            withdraw_to = details.get('to', "N/A")
+            deposit_from = details.get('from', "N/A")
+
+        elif category in ['UNSTAKING', 'STAKING', 'INTEREST']:
+            address = "N/A"
+            transaction_url = "N/A"
+            payment_methods = "N/A"
+            withdraw_to = "N/A"
+            deposit_from = "N/A"
+
+        else: 
+            log_func("ERROR - Unknown transaction category identified.")
+
+        return {
+            "Created Date/Time": created_at,
+            "Category": category,
+            "Type": title,
+            "Currency": currency,
+            "Value": value,
+            "Address": address,
+            "Transaction URL": transaction_url,
+            "Payment Method": payment_methods,
+            "Withdraw To": withdraw_to,
+            "Deposit From": deposit_from,
+            "Source": "Cache"
+        }
+
+    for url_pattern in TRANSACTION_PATTERNS:
+        for cache_rec in profile.iterate_cache(url=url_pattern):
+            cache_data = json.loads(cache_rec.data.decode("utf-8"))
+
+            if "viewer" in cache_data.get("data", {}):
+                data_node = cache_data["data"].get("viewer", {}).get("accountByUuidV2", {})
+
+            else:
+                data_node = cache_data.get("data", {}).get("node", {}) # '&operationName=usePaginatedAccount'stores the transaction data slightly differently
+
+            account_history_entries = data_node.get("accountHistoryEntries", {})
+            edges = account_history_entries.get('edges', [])
+
+            for edge in edges:
+                result = process_transaction_node(edge.get('node'), log_func)
+                if result:
+                    result["Data Location"] = str(cache_rec.data_location)
+                    results.append(result)
+
+    return ArtifactResult(results)
+
+
 __artifacts__ = (
     ArtifactSpec(
         "Coinbase",
@@ -155,6 +246,14 @@ __artifacts__ = (
         "Recovers Coinbase Balances records from the Cache",
         "0.1",
         get_coinbase_balances,
+        ReportPresentation.table
+    ),
+    ArtifactSpec(
+        "Coinbase",
+        "Coinbase Transactions",
+        "Recovers Coinbase Transactions from the Cache",
+        "0.1",
+        get_coinbase_transactions,
         ReportPresentation.table
     ),
 )
