@@ -20,6 +20,7 @@ plugins against a Chrome or Chromium Profile Folder.
 | coinbase_plugin.py        | Coinbase        | Coinbase Payment Methods              | 0.1     | Recovers Coinbase Payement Methods records from the Cache                                                 |
 | coinbase_plugin.py        | Coinbase        | Coinbase User Details                 | 0.1     | Recovers Coinbase User Details records from the Cache                                                     |
 | coinbase_plugin.py        | Coinbase        | Coinbase Balances                     | 0.1     | Recovers Coinbase Balances records from the Cache                                                         |
+| coinbase_plugin.py        | Coinbase        | Coinbase Transactions                 | 0.1     | Recovers Coinbase Transactions from the Cache                                                             |
 | discord_plugin.py         | Discord         | Discord Chat Messages                 | 0.1     | Recovers Discord chat messages from the Cache                                                             |
 | dropbox_plugin.py         | Dropbox         | Dropbox Session Storage User Activity | 0.3     | Recovers user activity from 'uxa' records in Session Storage                                              |
 | dropbox_plugin.py         | Dropbox         | Dropbox File System                   | 0.2     | Recovers a partial file system from URLs in the history                                                   |
