@@ -43,7 +43,7 @@ def bing_search_urls(
             }
         )
 
-    results.sort(key=lambda x: x["timestamp"] or datetime.datetime((1601, 1, 1)))
+    results.sort(key=lambda x: x["timestamp"] or datetime.datetime(1601, 1, 1))
     return ArtifactResult(results)
 
 
