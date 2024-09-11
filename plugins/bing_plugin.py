@@ -1,3 +1,4 @@
+import datetime
 import re
 import urllib.parse
 
@@ -34,7 +35,7 @@ def bing_search_urls(
         search_term = _get_search_details(cache_rec.key.url)
         results.append(
             {
-                "timestamp": cache_rec.metadata.request_time,
+                "timestamp": cache_rec.metadata.request_time if cache_rec.metadata is not None else None,
                 "search term": search_term,
                 "original url": cache_rec.key.url,
                 "source": "cache",
@@ -42,7 +43,7 @@ def bing_search_urls(
             }
         )
 
-    results.sort(key=lambda x: x["timestamp"])
+    results.sort(key=lambda x: x["timestamp"] or datetime.datetime((1601, 1, 1)))
     return ArtifactResult(results)
 
 
@@ -51,7 +52,7 @@ __artifacts__ = (
         "Bing",
         "Bing searches",
         "Recovers Bing searches from URLs in history, cache",
-        "0.1",
+        "0.2",
         bing_search_urls,
         ReportPresentation.table
     ),

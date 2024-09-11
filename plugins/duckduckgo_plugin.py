@@ -40,7 +40,7 @@ def ddg_search_urls(
         search_term = _get_search_details(cache_rec.key.url)
         results.append(
             {
-                "timestamp": cache_rec.metadata.request_time,
+                "timestamp": cache_rec.metadata.request_time if cache_rec.metadata is not None else None,
                 "search term": search_term,
                 "original url": cache_rec.key.url,
                 "source": "cache",
@@ -56,7 +56,7 @@ __artifacts__ = (
         "Duckduckgo",
         "Duckduckgo searches",
         "Recovers Duckduckgo searches from URLs in history, cache",
-        "0.1",
+        "0.2",
         ddg_search_urls,
         ReportPresentation.table
     ),

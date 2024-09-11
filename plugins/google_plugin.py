@@ -74,7 +74,7 @@ def google_search_urls(
             "source": "Cache URLs",
             "location": str(cache_rec.metadata_location),
             "domain": urllib.parse.urlparse(cache_url).hostname,
-            "timestamp": cache_rec.metadata.request_time
+            "timestamp": cache_rec.metadata.request_time if cache_rec.metadata is not None else None
         }
 
         cache_rec_details.update(search_details)
@@ -111,7 +111,7 @@ __artifacts__ = (
         "Google",
         "Google searches",
         "Recovers google searches from URLs in history, session storage, cache",
-        "0.4",
+        "0.5",
         google_search_urls,
         ReportPresentation.table
     ),
