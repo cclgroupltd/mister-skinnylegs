@@ -14,7 +14,7 @@ plugins against a Chrome or Chromium Profile Folder.
 ## Current Plugins
 | Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
 |---------------------------|-----------------|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------------|
-| bing_plugin.py            | Bing            | Bing searches                         | 0.1     | Recovers Bing searches from URLs in history, cache                                                        |
+| bing_plugin.py            | Bing            | Bing searches                         | 0.2     | Recovers Bing searches from URLs in history, cache                                                        |
 | chatgpt_plugin.py         | ChatGPT         | ChatGPT Chat Information              | 0.1     | Recovers ChatGPT chat information from History and Cache                                                  |
 | chatgpt_plugin.py         | ChatGPT         | ChatGPT User Information              | 0.1     | Recovers ChatGPT user information from Cache                                                              |
 | coinbase_plugin.py        | Coinbase        | Coinbase Payment Methods              | 0.1     | Recovers Coinbase Payement Methods records from the Cache                                                 |
@@ -25,17 +25,19 @@ plugins against a Chrome or Chromium Profile Folder.
 | dropbox_plugin.py         | Dropbox         | Dropbox Session Storage User Activity | 0.3     | Recovers user activity from 'uxa' records in Session Storage                                              |
 | dropbox_plugin.py         | Dropbox         | Dropbox File System                   | 0.2     | Recovers a partial file system from URLs in the history                                                   |
 | dropbox_plugin.py         | Dropbox         | Dropbox Thumbnails                    | 0.4     | Recovers thumbnails for files stored in Dropbox                                                           |
-| duckduckgo_plugin.py      | Duckduckgo      | Duckduckgo searches                   | 0.1     | Recovers Duckduckgo searches from URLs in history, cache                                                  |
+| duckduckgo_plugin.py      | Duckduckgo      | Duckduckgo searches                   | 0.2     | Recovers Duckduckgo searches from URLs in history, cache                                                  |
 | google_drive_plugin.py    | Google Drive    | Google Drive Files and Folders        | 0.2     | Recovers Google Drive and Docs folder and file names (and urls) from history records                      |
 | google_drive_plugin.py    | Google Drive    | Google Drive Thumbnails               | 0.2     | Recovers Google Drive thumbnails from the cache                                                           |
 | google_drive_plugin.py    | Google Drive    | Google Drive Usage                    | 0.2     | Recovers indications of Google Drive usage                                                                |
-| google_plugin.py          | Google          | Google searches                       | 0.4     | Recovers google searches from URLs in history, session storage, cache                                     |
+| google_plugin.py          | Google          | Google searches                       | 0.5     | Recovers google searches from URLs in history, session storage, cache                                     |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.2     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.2     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
+| reddit_plugin.py          | Reddit          | Reddit Chat Messages                  | 0.2     | Recovers Reddit chat messages from the Cache and IndexedDB                                                |
 | storage_dump_plugin.py    | Data Dump       | History                               | 0.2     | Dumps History Records                                                                                     |
 | storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.2     | Dumps Download Records                                                                                    |
 | storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.2     | Dumps Localstorage Records                                                                                |
 | storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
+
 
 
 ## The CLI Tool
