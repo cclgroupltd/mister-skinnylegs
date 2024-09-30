@@ -79,7 +79,7 @@ __artifacts__ = (
     ArtifactSpec(
         "Binance",
         "Binance Balances",
-        "Recovers Coinbase Balances records from the Cache",
+        "Recovers Binance Balance records from the Cache",
         "0.1",
         get_binance_balances,
         ReportPresentation.table
