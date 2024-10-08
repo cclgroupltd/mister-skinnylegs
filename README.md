@@ -14,6 +14,8 @@ plugins against a Chrome or Chromium Profile Folder.
 ## Current Plugins
 | Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
 |---------------------------|-----------------|---------------------------------------|---------|-----------------------------------------------------------------------------------------------------------|
+| binance_plugin.py         | Binance         | Binance User Details                  | 0.1     | Recovers Binance User Details records from the Cache                                                      |
+| binance_plugin.py         | Binance         | Binance Balances                      | 0.1     | Recovers Binance Balance records from the Cache                                                           |
 | bing_plugin.py            | Bing            | Bing searches                         | 0.2     | Recovers Bing searches from URLs in history, cache                                                        |
 | chatgpt_plugin.py         | ChatGPT         | ChatGPT Chat Information              | 0.1     | Recovers ChatGPT chat information from History and Cache                                                  |
 | chatgpt_plugin.py         | ChatGPT         | ChatGPT User Information              | 0.1     | Recovers ChatGPT user information from Cache                                                              |
@@ -37,7 +39,6 @@ plugins against a Chrome or Chromium Profile Folder.
 | storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.2     | Dumps Download Records                                                                                    |
 | storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.2     | Dumps Localstorage Records                                                                                |
 | storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
-
 
 
 ## The CLI Tool
