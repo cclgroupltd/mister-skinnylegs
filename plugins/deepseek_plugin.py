@@ -14,6 +14,8 @@ CHAT_MESSAGES_API_URL_PATTERN = re.compile(r'chat.deepseek.*?\.[A-z]{2,3}/api/v0
 
 def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
+    mobs_list = []
+    emails_list = []
     
     for cache_rec in profile.iterate_cache(url=USER_DETAILS_API_URL_PATTERN):
         if cache_rec.data is None:
@@ -26,9 +28,21 @@ def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction
         email = data.get("email")
         mob_num = data.get("mobile_number")
 
+        biz_data = data.get("biz_data")
+        biz_email = biz_data.get("email")
+        biz_mob_number = biz_data.get("mobile_number")
+
+        emails_list.append(email)
+        emails_list.append(biz_email)
+        mobs_list.append(mob_num)
+        mobs_list.append(biz_mob_number)
+
+        no_dups_email_list = list(dict.fromkeys(filter(None, emails_list)))
+        no_dups_mob_list = list(dict.fromkeys(filter(None, mobs_list)))
+
     result = {
-        "Email": email,
-        "Mobile Number": mob_num or "N/A",
+        "User Emails": ", ".join(no_dups_email_list) or "N/A",
+        "User Mobile Numbers": ", ".join(no_dups_mob_list) or "N/A",
         "Source": "Cache",
         "Data Location": str(cache_rec.data_location)
     }
@@ -98,8 +112,11 @@ def get_deepseek_chat_sessions(profile: BrowserProfileProtocol, log_func: LogFun
 
     return ArtifactResult(results)   
 
+
 def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
     results = []
+    files_list = []
+    urls_list = []
     
     for cache_rec in profile.iterate_cache(url=CHAT_MESSAGES_API_URL_PATTERN):
         if cache_rec.data is None:
@@ -132,15 +149,28 @@ def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFun
         for messages in chat_messages:
 
             message_id = messages.get("message_id")
+            sent_time = messages.get("inserted_at")
             role = messages.get("role")
             message = messages.get("content")
             files = messages.get("files")
-            sent_time = messages.get("inserted_at")
+            web_search_enabled = messages.get("search_enabled")
+            web_search_results = messages.get("search_results")
 
             if sent_time is None:
                 sent_timestamp = None
             else:
                 sent_timestamp = datetime.fromtimestamp(sent_time)
+
+            for items in files:
+                file_name = items.get("file_name")
+                files_list.append(file_name)
+
+            if web_search_results == None:
+                pass
+            else:
+                for searches in web_search_results:
+                    urls = searches.get("url")
+                    urls_list.append(urls)
 
             result = {
                 "ID": str(chat_id),
@@ -151,8 +181,10 @@ def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFun
                 "Message Sent Time": sent_timestamp,
                 "Role": role,
                 "Message": message,
-                "File": files,
-                "Source": "Cache",
+                "Files": ", ".join(files_list) or "N/A",
+                "Web Search Enabled": str(web_search_enabled),
+                "Web Search Results": ", ".join(urls_list) or "N/A",
+                "Source": "Cache", 
                 "Data Location": str(cache_rec.data_location)
             }
             results.append(result)
