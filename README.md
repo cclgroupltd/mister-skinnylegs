@@ -9,7 +9,7 @@
 mister-skinnylegs is an open plugin framework for parsing website/webapp 
 artifacts in browser data. 
 It currently provides a command line interface (CLI) for running the 
-plugins against a Chrome or Chromium Profile Folder.
+plugins against a Chrome, Chromium or Mozilla Firefox Profile Folder.
 
 ## Current Plugins
 | Plugin File               | Service         | Artifact                              | Version | Description                                                                                               |
