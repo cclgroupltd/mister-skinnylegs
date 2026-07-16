@@ -2,26 +2,27 @@ import json
 import re
 from datetime import datetime
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
-
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 USER_DETAILS_API_URL_PATTERN = re.compile(r"chat.deepseek.*?\.[A-z]{2,3}/api/v0/users/current")
 CHAT_SESSIONS_API_URL_PATTERN = re.compile(r"chat.deepseek.*?\.[A-z]{2,3}/api/v0/chat_session")
 CHAT_URL_PATTERN = re.compile(r"chat.deepseek.*?\.[A-z]{2,3}/a/chat/s/[0-9a-fA-F\-]{36}$")
-CHAT_MESSAGES_API_URL_PATTERN = re.compile(r'chat.deepseek.*?\.[A-z]{2,3}/api/v0/chat/history_messages\?chat_session_id=')
+CHAT_MESSAGES_API_URL_PATTERN = re.compile(
+    r'chat.deepseek.*?\.[A-z]{2,3}/api/v0/chat/history_messages\?chat_session_id=')
 
 
-def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
+                          storage: ArtifactStorage) -> ArtifactResult:
     results = []
     mobs_list = []
     emails_list = []
-    
+
     for cache_rec in profile.iterate_cache(url=USER_DETAILS_API_URL_PATTERN):
         if cache_rec.data is None:
             log_func(f"Error: DeepSeek User Information cache file is size is zero! Skipping file.")
             continue
-            
+
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
         data = cache_data.get("data")
@@ -49,17 +50,18 @@ def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction
 
     results.append(result)
 
-    return ArtifactResult(results)   
+    return ArtifactResult(results)
 
 
-def get_deepseek_chat_sessions(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_deepseek_chat_sessions(profile: BrowserProfileProtocol, log_func: LogFunction,
+                               storage: ArtifactStorage) -> ArtifactResult:
     results = []
 
     for cache_rec in profile.iterate_cache(url=CHAT_SESSIONS_API_URL_PATTERN):
         if cache_rec.data is None:
             log_func(f"Error: DeepSeek Chat Session information cache file is size is zero! Skipping file.")
             continue
-    
+
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
         data = cache_data.get('data')
@@ -106,23 +108,24 @@ def get_deepseek_chat_sessions(profile: BrowserProfileProtocol, log_func: LogFun
                 "Chat Updated Time": "Unknown",
                 "Orginal URL": history_rec.url,
                 "Source": "History",
-                "Data Location": history_rec.record_location 
+                "Data Location": history_rec.record_location
             }
         )
 
-    return ArtifactResult(results)   
+    return ArtifactResult(results)
 
 
-def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:
+def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFunction,
+                               storage: ArtifactStorage) -> ArtifactResult:
     results = []
     files_list = []
     urls_list = []
-    
+
     for cache_rec in profile.iterate_cache(url=CHAT_MESSAGES_API_URL_PATTERN):
         if cache_rec.data is None:
             log_func(f"Error: DeepSeek Chat Message information cache file is size is zero! Skipping file.")
             continue
-        
+
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
         data = cache_data.get('data')
@@ -184,12 +187,12 @@ def get_deepseek_chat_messages(profile: BrowserProfileProtocol, log_func: LogFun
                 "Files": ", ".join(files_list) or "N/A",
                 "Web Search Enabled": str(web_search_enabled),
                 "Web Search Results": ", ".join(urls_list) or "N/A",
-                "Source": "Cache", 
+                "Source": "Cache",
                 "Data Location": str(cache_rec.data_location)
             }
             results.append(result)
 
-    return ArtifactResult(results) 
+    return ArtifactResult(results)
 
 
 __artifacts__ = (
