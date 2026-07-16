@@ -1,6 +1,6 @@
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 
 def dump_history(profile: BrowserProfileProtocol, log_func: LogFunction, storage: ArtifactStorage) -> ArtifactResult:

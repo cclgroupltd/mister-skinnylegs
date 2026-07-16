@@ -3,8 +3,8 @@ import re
 import datetime
 import urllib.parse
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 from ccl_chromium_reader.ccl_chromium_profile_folder import ChromiumProfileFolder
 
 EPOCH = datetime.datetime(1970, 1, 1)

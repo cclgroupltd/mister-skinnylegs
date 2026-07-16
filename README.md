@@ -209,7 +209,7 @@ future versions where other common data-types, such as datetime.datetime,
 will be encoded in a standard way). 
 
 A minimal example of a plugin can be found in 
-[example_plugin_.py](plugins/example_plugin_.py) 
+[example_plugin_.py](mister_skinnylegs/plugins/example_plugin_.py) 
 
 #### chrome-profile-view
 We have released another project which might assist in the research of new

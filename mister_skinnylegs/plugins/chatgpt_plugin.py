@@ -2,8 +2,8 @@ import json
 import re
 from datetime import datetime
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 
 CONVERSATION_API_URL_PATTERN = re.compile(r"chatgpt.*?\.[A-z]{2,3}/backend-api/conversations\?offset")

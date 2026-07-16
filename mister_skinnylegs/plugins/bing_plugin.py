@@ -2,8 +2,8 @@ import datetime
 import re
 import urllib.parse
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 SEARCH_URL_PATTERN = re.compile(r"https?://.*bing.*?\.[A-z]{2,3}/search")
 

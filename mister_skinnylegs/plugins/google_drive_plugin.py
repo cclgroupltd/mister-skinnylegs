@@ -1,9 +1,9 @@
 import re
 import datetime
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 FOLDERS_URL_PATTERN = re.compile(r"^https://drive.google.com/drive/folders/")
 FILES_URL_PATTERN = re.compile(r"^https://drive.google.com/file/d/")

@@ -2,7 +2,7 @@ import pathlib
 import re
 import typing
 
-from util.artifact_utils import ArtifactStorage, ArtifactStorageTextStream, ArtifactStorageBinaryStream
+from .artifact_utils import ArtifactStorage, ArtifactStorageTextStream, ArtifactStorageBinaryStream
 
 WINDOWS_RESERVED_NAMES = {
     "CON", "PRN", "AUX", "NUL",

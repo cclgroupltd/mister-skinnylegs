@@ -5,8 +5,7 @@ import abc
 
 from dataclasses import dataclass
 from collections.abc import Callable
-#from ccl_chromium_reader import ChromiumProfileFolder
-from util.profile_folder_protocols import BrowserProfileProtocol
+from .profile_folder_protocols import BrowserProfileProtocol
 
 
 JsonableType = typing.Union[

@@ -3,7 +3,7 @@ import pathlib
 import typing
 import collections.abc as col_abc
 
-from util.common import KeySearch
+from .common import KeySearch
 
 
 class HasRecordLocationProtocol(typing.Protocol):

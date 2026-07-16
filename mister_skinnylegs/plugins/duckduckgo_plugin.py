@@ -1,8 +1,8 @@
 import re
 import urllib.parse
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 
 # The "?t" query is at the start to omit some other hits which can be misleading (partially written search terms

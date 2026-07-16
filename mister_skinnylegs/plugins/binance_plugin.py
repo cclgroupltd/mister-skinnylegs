@@ -1,8 +1,8 @@
 import json
 import re
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 
 BALANCES_PATTERN = re.compile(r"binance.*?\.[A-z]{2,3}/bapi/asset/v2/private/asset-service/wallet/balance")

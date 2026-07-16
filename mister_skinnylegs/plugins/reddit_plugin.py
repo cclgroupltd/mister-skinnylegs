@@ -7,8 +7,8 @@ import re
 import typing
 import urllib.parse
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 # This appears to be an implementation of the Matrix chat platform. With some work we could probably abstract this
 #  to work with Matrix in a generic fashion? Not sure where else we see it at the moment though.

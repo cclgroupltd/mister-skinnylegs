@@ -1,5 +1,8 @@
 .idea
 venv
 .venv
-/plugins/__pycache__
-/util/__pycache__
+/mister_skinnylegs/plugins/__pycache__
+/mister_skinnylegs/util/__pycache__
+/*.egg-info
+/dist
+

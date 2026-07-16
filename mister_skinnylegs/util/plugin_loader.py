@@ -2,7 +2,7 @@ import pathlib
 import typing
 from collections.abc import Iterable
 import importlib.util
-from util.artifact_utils import ArtifactSpec
+from .artifact_utils import ArtifactSpec
 
 
 class PluginLoader:

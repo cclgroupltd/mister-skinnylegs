@@ -5,9 +5,9 @@ import re
 import uuid
 import urllib.parse
 
-from util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
+from mister_skinnylegs.util.artifact_utils import ArtifactResult, ArtifactSpec, LogFunction, ReportPresentation, ArtifactStorage
 from ccl_chromium_reader import ChromiumProfileFolder
-from util.profile_folder_protocols import BrowserProfileProtocol
+from mister_skinnylegs.util.profile_folder_protocols import BrowserProfileProtocol
 
 
 _GUID_FRAGMENT = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
