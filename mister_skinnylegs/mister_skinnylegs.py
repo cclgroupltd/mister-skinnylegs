@@ -30,13 +30,13 @@ import typing
 import collections.abc as colabc
 import asyncio
 from .util.plugin_loader import PluginLoader
-from .util.artifact_utils import ArtifactSpec, ReportPresentation, LogFunction, ArtifactStorage
+from .util.artifact_utils import ArtifactSpec, ReportPresentation, LogFunction, ArtifactStorage, ArtifactResult
 from .util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 
 from ccl_chromium_reader import ChromiumProfileFolder
 from ccl_mozilla_reader import MozillaProfileFolder
 
-__version__ = "0.0.15"
+__version__ = "0.0.16"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
@@ -158,6 +158,34 @@ class MisterSkinnylegs:
     @staticmethod
     def log_fallback(message: str):
         print(f"Log:\t{message}")
+
+    @staticmethod
+    def run_plugin_on_path(spec: ArtifactSpec,
+                           profile_path: pathlib.Path,
+                           cache_path: typing.Optional[pathlib.Path],
+                           browser_type: BrowserType,
+                           storage: ArtifactStorage,
+                           log_callback: LogFunction
+                           ) -> ArtifactResult:
+        """
+        A convenience function which allows other hosts to run a single plugin synchronously
+
+        :param spec: the artifact spec for the plugin
+        :param profile_path: path to the browser profile folder
+        :param cache_path: path to the browser cache folder
+        :param browser_type: a BrowserType defining what type of browser is being targeted
+        :param storage: an ArtifactStorage object
+        :param log_callback: a LogFunction callback
+        :return:
+        """
+        if browser_type == BrowserType.chromium:
+            profile = ChromiumProfileFolder(profile_path, cache_folder=cache_path)
+        elif browser_type == BrowserType.mozilla:
+            profile = MozillaProfileFolder(profile_path, cache_path)
+        else:
+            raise ValueError(f"Unknown BrowserType: {browser_type}")
+
+        return spec.function(profile, log_callback, storage)
 
 
 class SimpleLog:

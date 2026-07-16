@@ -6,9 +6,23 @@ import collections.abc as col_abc
 from .common import KeySearch
 
 
+class ArtifactLocationProtocol(typing.Protocol):
+    @property
+    def source_file(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    def offset(self) -> typing.Optional[int]:
+        raise NotImplementedError()
+
+    @property
+    def friendly_string(self) -> str:
+        raise NotImplementedError()
+
+
 class HasRecordLocationProtocol(typing.Protocol):
     @property
-    def record_location(self) -> str:
+    def record_location(self) -> ArtifactLocationProtocol:
         raise NotImplementedError()
 
 

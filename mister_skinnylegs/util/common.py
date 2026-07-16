@@ -5,7 +5,6 @@ import collections.abc as col_abc
 
 KeySearch = typing.Union[str, re.Pattern, col_abc.Collection[str], col_abc.Callable[[str], bool]]
 
-
 def is_keysearch_hit(search: KeySearch, value: str):
     if isinstance(search, str):
         return value == search
