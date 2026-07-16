@@ -15,6 +15,10 @@ def get_chatgpt_chatinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
     results = []
     
     for cache_rec in profile.iterate_cache(url=CONVERSATION_API_URL_PATTERN):
+        if cache_rec.data is None:
+            log_func(f"Error: ChatGPT chat information cache file is size is zero! Skipping file.")
+            continue
+            
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
     
         items = cache_data.get("items", {})
@@ -58,13 +62,21 @@ def get_chatgpt_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction,
     results = []
 
     for cache_rec in profile.iterate_cache(url=USER_DETAILS_API_URL_PATTERN):
+        if cache_rec.data is None:
+            log_func(f"Error: ChatGPT user information cache file is size is zero! Skipping file.")
+            continue
+            
         cache_data = json.loads(cache_rec.data.decode("utf-8"))
 
         name = cache_data.get("name")
         email = cache_data.get("email")
         phone_number = cache_data.get("phone_number")
         created = cache_data.get("created")
-        standard_timestamp = datetime.fromtimestamp(created)
+        
+        if created is None:
+            standard_timestamp = None
+        else:
+            standard_timestamp = datetime.fromtimestamp(created)
     
         result = {
             "Created": str(standard_timestamp),
@@ -85,7 +97,7 @@ __artifacts__ = (
         "ChatGPT",
         "ChatGPT Chat Information",
         "Recovers ChatGPT chat information from History and Cache",
-        "0.1",
+        "0.2",
         get_chatgpt_chatinfo,
         ReportPresentation.table
     ),
@@ -93,7 +105,7 @@ __artifacts__ = (
         "ChatGPT",
         "ChatGPT User Information",
         "Recovers ChatGPT user information from Cache",
-        "0.1",
+        "0.2",
         get_chatgpt_userinfo,
         ReportPresentation.table
     ),
