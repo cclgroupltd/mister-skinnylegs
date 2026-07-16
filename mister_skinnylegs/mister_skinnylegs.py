@@ -36,7 +36,7 @@ from .util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
 from ccl_chromium_reader import ChromiumProfileFolder
 from ccl_mozilla_reader import MozillaProfileFolder
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 __description__ = "an open plugin framework for parsing website/webapp artifacts in browser data"
 __contact__ = "Alex Caithness"
 
@@ -283,6 +283,11 @@ async def main(
     log_file.close()
     print()
     print()
+
+
+def iter_plugins():
+    loader = PluginLoader(PLUGIN_PATH)
+    yield from loader.artifacts
 
 
 def list_plugins():
