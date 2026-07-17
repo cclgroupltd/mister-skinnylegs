@@ -41,14 +41,14 @@ def get_deepseek_userinfo(profile: BrowserProfileProtocol, log_func: LogFunction
         no_dups_email_list = list(dict.fromkeys(filter(None, emails_list)))
         no_dups_mob_list = list(dict.fromkeys(filter(None, mobs_list)))
 
-    result = {
-        "User Emails": ", ".join(no_dups_email_list) or "N/A",
-        "User Mobile Numbers": ", ".join(no_dups_mob_list) or "N/A",
-        "Source": "Cache",
-        "Data Location": str(cache_rec.data_location)
-    }
+        result = {
+            "User Emails": ", ".join(no_dups_email_list) or "N/A",
+            "User Mobile Numbers": ", ".join(no_dups_mob_list) or "N/A",
+            "Source": "Cache",
+            "Data Location": str(cache_rec.data_location)
+        }
 
-    results.append(result)
+        results.append(result)
 
     return ArtifactResult(results)
 

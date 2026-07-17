@@ -6,6 +6,7 @@ import collections.abc as col_abc
 from .common import KeySearch
 
 
+@typing.runtime_checkable
 class ArtifactLocationProtocol(typing.Protocol):
     @property
     def source_file(self) -> str:
@@ -85,8 +86,8 @@ class CacheRecordProtocol(typing.Protocol):
     key: CacheKeyProtocol
     metadata: CacheMetadataProtocol
     data: bytes
-    metadata_location: typing.Any
-    data_location: typing.Any
+    metadata_location: ArtifactLocationProtocol
+    data_location: ArtifactLocationProtocol
     was_decompressed: bool
 
 

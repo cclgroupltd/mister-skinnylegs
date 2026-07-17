@@ -41,9 +41,13 @@ class ArtifactSpec:
     function: ArtifactFunction
     presentation: ReportPresentation = ReportPresentation.custom
     citation: typing.Optional[str] = None
+    media_field_names: typing.Optional[list[str]] = None
 
 
 class ArtifactStorageBinaryStream(abc.ABC):
+    def __init__(self, source_file: str):
+        self._source_file = source_file
+
     def write(self, data: bytes) -> int:
         raise NotImplementedError()
 
@@ -53,6 +57,10 @@ class ArtifactStorageBinaryStream(abc.ABC):
     def get_file_location_reference(self) -> str:
         raise NotImplementedError()
 
+    @property
+    def source_file(self):
+        return self._source_file
+
     def __enter__(self) -> "ArtifactStorageBinaryStream":
         raise NotImplementedError()
 
@@ -61,6 +69,9 @@ class ArtifactStorageBinaryStream(abc.ABC):
 
 
 class ArtifactStorageTextStream(abc.ABC):
+    def __init__(self, source_file: str):
+        self._source_file = source_file
+
     def write(self, data: str) -> int:
         raise NotImplementedError()
 
@@ -70,6 +81,10 @@ class ArtifactStorageTextStream(abc.ABC):
     def get_file_location_reference(self) -> str:
         raise NotImplementedError()
 
+    @property
+    def source_file(self):
+        return self._source_file
+
     def __enter__(self) -> "ArtifactStorageTextStream":
         raise NotImplementedError()
 
@@ -78,20 +93,22 @@ class ArtifactStorageTextStream(abc.ABC):
 
 
 class ArtifactStorage(abc.ABC):
-    def get_binary_stream(self, file_name: str) -> ArtifactStorageBinaryStream:
+    def get_binary_stream(self, file_name: str, source_file: str) -> ArtifactStorageBinaryStream:
         """
         Returns a ArtifactStorageBinaryStream which can be used by a plugin to store report data
         :param file_name: the name of the file to be stored. This may be altered by the implementing class so the
                ArtifactStorageBinaryStream should be used to get the final file location reference
+        :param source_file: path of the file that this stream is being written into from
         :return: an object implementing ArtifactStorageBinaryStream
         """
         raise NotImplementedError()
 
-    def get_text_stream(self, file_name: str) -> ArtifactStorageTextStream:
+    def get_text_stream(self, file_name: str, source_file: str) -> ArtifactStorageTextStream:
         """
         Returns a ArtifactStorageTextStream which can be used by a plugin to store report data
         :param file_name: the name of the file to be stored. This may be altered by the implementing class so the
                ArtifactStorageTextStream should be used to get the final file location reference
+        :param source_file: path of the file that this stream is being written into from
         :return: an object implementing ArtifactStorageTextStream
         """
         raise NotImplementedError()

@@ -29,6 +29,10 @@ import pathlib
 import typing
 import collections.abc as colabc
 import asyncio
+
+import ccl_chromium_reader.structures
+
+from mister_skinnylegs.util.profile_folder_protocols import ArtifactLocationProtocol
 from .util.plugin_loader import PluginLoader
 from .util.artifact_utils import ArtifactSpec, ReportPresentation, LogFunction, ArtifactStorage, ArtifactResult
 from .util.fs_utils import sanitize_filename, ArtifactFileSystemStorage
@@ -59,6 +63,8 @@ class ExtendedEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
+        if isinstance(obj, ArtifactLocationProtocol):
+            return obj.friendly_string
         return super().default(obj)
 
 
@@ -109,7 +115,7 @@ class MisterSkinnylegs:
         match self._browser_type:
             case BrowserType.chromium:
                 self._make_profile = lambda: ChromiumProfileFolder(
-                    self._profile_folder_path, cache_folder=self._cache_folder_path)
+                    self._profile_folder_path, cache_folder=self._cache_folder_path, missing_data_ok=True)
             case BrowserType.mozilla:
                 self._make_profile = lambda: MozillaProfileFolder(self._profile_folder_path, self._cache_folder_path)
             case _:
@@ -179,7 +185,7 @@ class MisterSkinnylegs:
         :return:
         """
         if browser_type == BrowserType.chromium:
-            profile = ChromiumProfileFolder(profile_path, cache_folder=cache_path)
+            profile = ChromiumProfileFolder(profile_path, cache_folder=cache_path, missing_data_ok=True)
         elif browser_type == BrowserType.mozilla:
             profile = MozillaProfileFolder(profile_path, cache_path)
         else:
@@ -234,9 +240,12 @@ def write_csv(csv_out: typing.TextIO, result: list):
             if k not in fields:
                 fields.append(k)
 
-    writer = csv.DictWriter(csv_out, fields)
+    writer = csv.DictWriter(csv_out, fields,)
     writer.writeheader()
-    writer.writerows(result)
+    for row in result:
+        writer.writerow(
+            {k: (v.friendly_string if isinstance(v, ccl_chromium_reader.structures.ArtifactLocation) else v)
+             for k, v in row.items()})
 
 
 async def main(

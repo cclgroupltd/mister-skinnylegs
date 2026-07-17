@@ -247,7 +247,7 @@ def get_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage
             out_extension = ""
             if record.metadata and (mime := record.metadata.get_attribute("content-type")):
                 out_extension = mimetypes.guess_extension(mime[0]) or ""
-            with storage.get_binary_stream(f"{media_id}_{file_exports[media_id]}{out_extension}") as o:
+            with storage.get_binary_stream(f"{media_id}_{file_exports[media_id]}{out_extension}", record.data_location.source_file) as o:
                 o.write(record.data)
 
     # Build a lookup and try and fix up records without a room

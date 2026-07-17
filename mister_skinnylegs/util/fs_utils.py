@@ -24,7 +24,8 @@ def sanitize_filename(fn: str):
 
 
 class ArtifactFileSystemStorageBinaryStream(ArtifactStorageBinaryStream):
-    def __init__(self, concrete_path: pathlib.Path, reference_path: str):
+    def __init__(self, concrete_path: pathlib.Path, reference_path: str, source_file: str):
+        super().__init__(source_file)
         self._f = concrete_path.open("xb")
         self._reference_path = reference_path
 
@@ -45,7 +46,8 @@ class ArtifactFileSystemStorageBinaryStream(ArtifactStorageBinaryStream):
 
 
 class ArtifactFileSystemStorageTextStream(ArtifactStorageTextStream):
-    def __init__(self, concrete_path: pathlib.Path, reference_path: str):
+    def __init__(self, concrete_path: pathlib.Path, reference_path: str, source_file: str):
+        super().__init__(source_file)
         self._f = concrete_path.open("xt")
         self._reference_path = reference_path
 
@@ -73,7 +75,7 @@ class ArtifactFileSystemStorage(ArtifactStorage):
         if self._root_path.exists() and not self._root_path.is_dir():
             raise ValueError(f"{self._root_path} already exists and isn't a directory")
 
-    def _get_stream(self, file_name: str, is_binary: bool) -> typing.Union[ArtifactStorageBinaryStream, ArtifactStorageTextStream]:
+    def _get_stream(self, file_name: str, is_binary: bool, source_file: str) -> typing.Union[ArtifactStorageBinaryStream, ArtifactStorageTextStream]:
         if not isinstance(file_name, str):
             raise TypeError("file_name should be a str")
 
@@ -84,14 +86,16 @@ class ArtifactFileSystemStorage(ArtifactStorage):
         file_name = sanitize_filename(file_name)
         if is_binary:
             return ArtifactFileSystemStorageBinaryStream(out_dir / file_name,
-                                                         str(pathlib.Path(self._folder_name, file_name)))
+                                                         str(pathlib.Path(self._folder_name, file_name)),
+                                                         source_file)
         else:
             return ArtifactFileSystemStorageTextStream(out_dir / file_name,
-                                                       str(pathlib.Path(self._folder_name, file_name)))
+                                                       str(pathlib.Path(self._folder_name, file_name)),
+                                                       source_file)
 
-    def get_binary_stream(self, file_name: str) -> ArtifactStorageBinaryStream:
-        return self._get_stream(file_name, is_binary=True)
+    def get_binary_stream(self, file_name: str, source_file: str) -> ArtifactStorageBinaryStream:
+        return self._get_stream(file_name, is_binary=True, source_file=source_file)
 
-    def get_text_stream(self, file_name: str) -> ArtifactStorageTextStream:
-        return self._get_stream(file_name, is_binary=False)
+    def get_text_stream(self, file_name: str, source_file: str) -> ArtifactStorageTextStream:
+        return self._get_stream(file_name, is_binary=False, source_file=source_file)
 

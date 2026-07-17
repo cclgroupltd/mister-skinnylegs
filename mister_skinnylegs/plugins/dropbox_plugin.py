@@ -86,7 +86,7 @@ def thumbnails(profile: BrowserProfileProtocol, log_func: LogFunction, storage: 
         else:
             out_filename = f"{idx}_"
 
-        with storage.get_binary_stream(out_filename) as file_out:
+        with storage.get_binary_stream(out_filename, rec.data_location.source_file) as file_out:
             file_out.write(rec.data)
 
         log_func(f"Exporting thumbnail to: {file_out.get_file_location_reference()}")

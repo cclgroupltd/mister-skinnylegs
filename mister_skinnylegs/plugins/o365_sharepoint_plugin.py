@@ -154,7 +154,7 @@ def _get_sharepoint_recent_files(profile: BrowserProfileProtocol, log_func: LogF
         else:
             out_file_name = f"thumb_sp_{idx:04}_{unique_id}{extension}"
 
-        with storage.get_binary_stream(out_file_name) as out:
+        with storage.get_binary_stream(out_file_name, source_file=cache_record.data_location.source_file) as out:
             out.write(cache_record.data)
 
         thumb_file_references.setdefault(unique_id, [])
@@ -254,7 +254,7 @@ def _get_edgeworth_recent_files(profile: BrowserProfileProtocol, log_func: LogFu
         else:
             out_file_name = f"thumb_gr_{idx:04}_{od_drive_id}_{od_item_id}{extension}"
 
-        with storage.get_binary_stream(out_file_name) as out:
+        with storage.get_binary_stream(out_file_name, cache_record.data_location.source_file) as out:
             out.write(cache_record.data)
 
         thumb_file_references.setdefault(key, [])
@@ -465,7 +465,9 @@ __artifacts__ = (
         "Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365",
         "0.2",
         get_recent_files,
-        ReportPresentation.table
+        ReportPresentation.table,
+        None,
+        ["extracted thumbnail reference"]
     ),
     ArtifactSpec(
         "O365-Sharepoint",
