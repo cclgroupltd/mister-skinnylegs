@@ -11,7 +11,7 @@ packages = [
 
 [project]
 name = "mister_skinnylegs"
-version = "0.0.17"
+version = "0.0.18"
 authors = [
   { name="Alex Caithness", email="research@cclsolutionsgroup.com" },
 ]
