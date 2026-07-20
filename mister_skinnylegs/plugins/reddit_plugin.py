@@ -57,10 +57,10 @@ def process_message(event: dict, result: dict, log_func: LogFunction):
             case _:
                 if RAISE_ON_UNEXPECTED_DATA:
                     log_func(json.dumps(event))
-                    raise NotImplementedError(f"Unexpected msgtype: {event["content"]["msgtype"]}")
+                    raise NotImplementedError(f"Unexpected msgtype: {event['content']['msgtype']}")
                 else:
                     result["_WARNING_ UNPARSED DATA"] = json.dumps(event)
-                    log_func(f"WARNING: Unexpected msgtype: {event["content"]["msgtype"]}")
+                    log_func(f"WARNING: Unexpected msgtype: {event['content']['msgtype']}")
 
         if relates_to := event["content"].get("m.relates_to"):
             match relates_to["rel_type"]:
@@ -72,10 +72,10 @@ def process_message(event: dict, result: dict, log_func: LogFunction):
                 case _:
                     if RAISE_ON_UNEXPECTED_DATA:
                         log_func(json.dumps(event))
-                        raise NotImplementedError(f"Unexpected rel_type: {relates_to["rel_type"]}")
+                        raise NotImplementedError(f"Unexpected rel_type: {relates_to['rel_type']}")
                     else:
                         result["_WARNING_ UNPARSED DATA"] = json.dumps(event)
-                        log_func(f"WARNING: Unexpected rel_type: {relates_to["rel_type"]}")
+                        log_func(f"WARNING: Unexpected rel_type: {relates_to['rel_type']}")
 
 
 def process_event(
@@ -110,7 +110,7 @@ def process_event(
             result["type"] = f"direct chat room created" if event["unsigned"]["is_direct"] else "chat room created"
             messages_raw.append(result)
         case "m.room.member":
-            result["type"] = f"chat member {event["content"]["membership"]}"
+            result["type"] = f"chat member {event['content']['membership']}"
             result["member id"] = event["state_key"]
             result["display name"] = event["content"]["displayname"]
             messages_raw.append(result)
@@ -128,21 +128,21 @@ def process_event(
         case "m.room.power_levels":
             pass  # I can't see where this could be useful
         case "m.room.join_rules":
-            result["type"] = f"join rules set: {event["content"]["join_rule"]}"
+            result["type"] = f"join rules set: {event['content']['join_rule']}"
             messages_raw.append(result)
         case "com.reddit.chat.type":
-            result["type"] = f"chat type set: {event["content"]["type"]}"
+            result["type"] = f"chat type set: {event['content']['type']}"
             messages_raw.append(result)
         case "m.room.history_visibility":
-            result["type"] = f"history visibility set: {event["content"]["history_visibility"]}"
+            result["type"] = f"history visibility set: {event['content']['history_visibility']}"
             messages_raw.append(result)
         case _:
             if RAISE_ON_UNEXPECTED_DATA:
-                raise NotImplementedError(f"Unexpected event type: {event["type"]}")
+                raise NotImplementedError(f"Unexpected event type: {event['type']}")
             else:
                 result["_WARNING_ UNPARSED DATA"] = json.dumps(event)
                 messages_raw.append(result)
-                log_func(f"WARNING: Unexpected event type: {event["type"]}")
+                log_func(f"WARNING: Unexpected event type: {event['type']}")
 
 
 def process_room_endpoint(url: str, obj: dict, messages_raw: list,

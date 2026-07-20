@@ -41,7 +41,8 @@ class ArtifactSpec:
     function: ArtifactFunction
     presentation: ReportPresentation = ReportPresentation.custom
     citation: typing.Optional[str] = None
-    media_field_names: typing.Optional[list[str]] = None
+    media_field_names: typing.Optional[tuple[str]] = None,
+    timestamp_field_names: typing.Optional[tuple[str]] = None
 
 
 class ArtifactStorageBinaryStream(abc.ABC):

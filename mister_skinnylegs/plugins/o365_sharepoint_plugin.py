@@ -99,7 +99,7 @@ def _get_sharepoint_recent_files(profile: BrowserProfileProtocol, log_func: LogF
                 method = "GetRecentFiles"
                 files = json.loads(obj["d"][method])  # embedded json string
             else:
-                raise ValueError(f"Unexpected or missing method keys: {tuple(obj["d"].keys())}")
+                raise ValueError(f"Unexpected or missing method keys: {tuple(obj['d'].keys())}")
         else:
             raise ValueError(f"Unknown RecentFileCollectionFormat in: {cache_record.key.url}")
 
@@ -186,19 +186,19 @@ def _get_edgeworth_recent_files(profile: BrowserProfileProtocol, log_func: LogFu
         for file in files:
             file_name = None
             if "title" in file:
-                file_name = f"{file["title"]}.{file["extension"]}" if file.get("extension") else file["title"]
+                file_name = f"{file['title']}.{file['extension']}" if file.get("extension") else file["title"]
 
             creating_user = None
             if "user" in file.get("creation_info", {}):
                 creating_user = (
-                        f"{file["creation_info"]["user"]["display_name"]} - " +
-                        f"{file["creation_info"]["user"].get("upn") or file["creation_info"]["user"].get("id", "")}")
+                        f"{file['creation_info']['user']['display_name']} - " +
+                        f"{file['creation_info']['user'].get('upn') or file['creation_info']['user'].get('id', '')}")
 
             modifying_user = None
             if "user" in file.get("modification_info", {}):
                 modifying_user = (
-                        f"{file["modification_info"]["user"]["display_name"]} - " +
-                        f"{file["modification_info"]["user"].get("upn") or file["modification_info"]["user"].get("id", "")}")
+                        f"{file['modification_info']['user']['display_name']} - " +
+                        f"{file['modification_info']['user'].get('upn') or file['modification_info']['user'].get('id', '')}")
 
             file_results.append({
                 "cache record location": f"{cache_record.data_location.file_name}@{cache_record.data_location.offset}",

@@ -52,8 +52,9 @@ __artifacts__ = (
         "Bing",
         "Bing searches",
         "Recovers Bing searches from URLs in history, cache",
-        "0.2",
+        "0.2.1",
         bing_search_urls,
-        ReportPresentation.table
+        ReportPresentation.table,
+        timestamp_field_names=("timestamp",)
     ),
 )

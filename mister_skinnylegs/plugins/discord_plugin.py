@@ -14,10 +14,10 @@ def get_messages(profile: BrowserProfileProtocol, log_func: LogFunction, storage
         msg_list = json.loads(cache_rec.data.decode("utf-8"))
         for msg in msg_list:
             attachments = "\n".join(
-                f"ID={x["id"]}; filename='{x["filename"]}'; url='{x["url"]}'" for x in msg["attachments"])
+                f"ID={x['id']}; filename='{x['filename']}'; url='{x['url']}'" for x in msg["attachments"])
             message_reference = None
             if msg_ref := msg.get("message_reference"):
-                message_reference = f"channel={msg_ref["channel_id"]}; message={msg_ref["message_id"]}"
+                message_reference = f"channel={msg_ref['channel_id']}; message={msg_ref['message_id']}"
             results.append({
                 "channel id": msg["channel_id"],
                 "message id": msg["id"],
