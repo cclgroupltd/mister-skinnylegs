@@ -11,13 +11,13 @@ packages = [
 
 [project]
 name = "mister_skinnylegs"
-version = "0.0.16"
+version = "0.0.17"
 authors = [
   { name="Alex Caithness", email="research@cclsolutionsgroup.com" },
 ]
 description = "mister-skinnylegs is an open plugin framework for parsing website/webapp artifacts in browser data. It currently provides a command line interface (CLI) for running the plugins against a Chrome/Chromium or Mozilla Firefox Profile Folder."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

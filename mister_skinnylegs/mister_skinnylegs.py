@@ -214,7 +214,9 @@ class SimpleLog:
         :param message: The message to log, as a string.
         """
         caller_name = f"{sys._getframemodulename(1)}.{sys._getframe(1).f_code.co_name}"
-        formatted_message = f"{datetime.datetime.now()}\t{caller_name}\t{message.replace('\n', '\n\t')}"
+        tab = "\t"
+        message = message.replace('\n', '\n\t')
+        formatted_message = f"{datetime.datetime.now()}{tab}{caller_name}{tab}{message}"
         self._f.write(formatted_message)
         self._f.write("\n")
 
