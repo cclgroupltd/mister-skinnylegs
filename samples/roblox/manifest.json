@@ -1,0 +1,82 @@
+{
+  "description": "Synthetic Roblox API cache samples. Each 'cache' record maps a response body file to the cache key URL the browser would have stored it under (the URL carries parameters the artifacts read, e.g. conversation_id / messageTab / pageNumber); 'history' records are profile page visits.",
+  "records": [
+    {
+      "kind": "cache",
+      "file": "bodies/get-user-conversations_page0.json",
+      "url": "https://apis.roblox.com/platform-chat-api/v1/get-user-conversations?pageNumber=0&pageSize=30",
+      "request_time": "2026-09-02T13:04:55Z",
+      "note": "conversation listing: group conversation with embedded messages, one-to-one conversation with a preview message only"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/get-user-conversations_page1.truncated.txt",
+      "url": "https://apis.roblox.com/platform-chat-api/v1/get-user-conversations?pageNumber=1&pageSize=30",
+      "request_time": "2026-09-02T13:04:56Z",
+      "note": "truncated / partially-overwritten cache body: invalid JSON, exercises salvage of complete message objects"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/get-conversation-messages_conv7462954591.json",
+      "url": "https://apis.roblox.com/platform-chat-api/v1/get-conversation-messages?conversation_id=7462954591&pageSize=20&pageNumber=0",
+      "request_time": "2026-09-02T13:05:02Z",
+      "note": "older page of the group conversation (conversation id read from the cache key URL)"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/get-conversation-messages_conv1868243752.json",
+      "url": "https://apis.roblox.com/platform-chat-api/v1/get-conversation-messages?conversation_id=1868243752&pageSize=20&pageNumber=0",
+      "request_time": "2026-09-02T13:05:07Z",
+      "note": "one-to-one conversation page including moderated (visibility hidden) and deleted messages; repeats the listing's preview message to exercise duplicate collapsing"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/legacy_chat_get-user-conversations.json",
+      "url": "https://chat.roblox.com/v1/get-user-conversations?pageNumber=0",
+      "request_time": "2025-11-12T21:05:00Z",
+      "note": "legacy web chat listing (JSON array, camelCase fields), parsed on a best-effort basis"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/legacy_chat_get-messages_conv5128849103.json",
+      "url": "https://chat.roblox.com/v1/get-messages?conversationId=5128849103&pageNumber=0",
+      "request_time": "2025-11-12T21:05:04Z",
+      "note": "legacy web chat messages (JSON array, senderTargetId/sent/read fields)"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/privatemessages_inbox_page0.json",
+      "url": "https://privatemessages.roblox.com/v1/messages?messageTab=inbox&pageNumber=0&pageSize=20",
+      "request_time": "2026-09-02T13:06:10Z",
+      "note": "paged inbox listing: a Roblox system message and a user-sent scam message with HTML body, anchor href and bare URL"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/privatemessages_sent_page0.json",
+      "url": "https://privatemessages.roblox.com/v1/messages?messageTab=sent&pageNumber=0&pageSize=20",
+      "request_time": "2026-09-02T13:06:12Z",
+      "note": "paged sent listing"
+    },
+    {
+      "kind": "cache",
+      "file": "bodies/privatemessages_message_901562999.json",
+      "url": "https://privatemessages.roblox.com/v1/messages/901562999",
+      "request_time": "2026-09-02T13:06:15Z",
+      "note": "single message response (/v1/messages/{id}) which never appeared in a cached folder listing - exercises the single-message branch"
+    },
+    {
+      "kind": "history",
+      "url": "https://www.roblox.com/users/6140998122/profile",
+      "title": "MikeDude1985 (@Mike) - Roblox",
+      "visit_time": "2026-08-30T22:14:02Z",
+      "note": "profile visit of the stranger who later sent the hidden chat messages"
+    },
+    {
+      "kind": "history",
+      "url": "https://www.roblox.com/users/4820117734/profile",
+      "title": "SkrillexFan42 (@Skri) - Roblox",
+      "visit_time": "2025-11-12T20:55:00Z",
+      "note": "profile visit of the account the legacy 'can i use ur account' message came from"
+    }
+  ]
+}

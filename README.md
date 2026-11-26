@@ -52,6 +52,17 @@ plugins against a Chrome, Chromium or Mozilla Firefox Profile Folder.
 | storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
 
 
+## Sample Data
+
+`samples/roblox` contains synthetic sample Roblox API response bodies (platform chat, legacy web chat, private messages and profile-visit history records) plus a runner which feeds them through the Roblox artifacts without needing a real browser capture:
+
+```
+python3 samples/roblox/run_samples.py
+```
+
+See `samples/roblox/README.md` for what the corpus covers.
+
+
 ## The CLI Tool
 ### Setting up the CLI tool
 The tool requires [Python](https://python.org) 3.12 or above. Once this is 
