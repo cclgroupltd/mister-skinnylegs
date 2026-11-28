@@ -35,13 +35,32 @@ plugins against a Chrome, Chromium or Mozilla Firefox Profile Folder.
 | google_drive_plugin.py    | Google Drive    | Google Drive Thumbnails               | 0.2     | Recovers Google Drive thumbnails from the cache                                                           |
 | google_drive_plugin.py    | Google Drive    | Google Drive Usage                    | 0.2     | Recovers indications of Google Drive usage                                                                |
 | google_plugin.py          | Google          | Google searches                       | 0.5     | Recovers google searches from URLs in history, session storage, cache                                     |
+| google_plugin.py          | Google          | Google AI Mode searches               | 0.1     | Recovers Google AI Mode searches and encoded query data (mq follow-ups, base64 gs_lp/gs_lcp query blobs, embedded timestamps) |
+| google_plugin.py          | Google          | Google Translate                      | 0.1     | Recovers Google Translate queries (languages, text, pages) from history and cache, and translated responses where cached |
+| web_filter_plugin.py     | Web Filters     | Web Filter Block Pages                | 0.3     | Recovers web filter block page URLs from history and cache, decoding the embedded blocked target, reason/category, rule, user and device details per the archived vendor URL schemas (GoGuardian, Linewize, Securly, BlockSi, Microsoft Family Safety, eero, Circle; Lightspeed recognised by host name) |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint recent files          | 0.2     | Recovers recent files list and any thumbnails from API responses in the cache for Sharepoint and O365     |
 | o365_sharepoint_plugin.py | O365-Sharepoint | O365-Sharepoint user activity         | 0.2     | Recovers artifacts related to user activity (viewing, editing, downloading, etc.) for Sharepoint and O365 |
 | reddit_plugin.py          | Reddit          | Reddit Chat Messages                  | 0.2     | Recovers Reddit chat messages from the Cache and IndexedDB                                                |
+| roblox_plugin.py          | Roblox          | Roblox Chat Conversations             | 0.2     | Recovers Roblox platform chat conversations (threads) from get-user-conversations responses in the Cache (legacy chat.roblox.com listings best-effort) |
+| roblox_plugin.py          | Roblox          | Roblox Chat Messages                  | 0.2     | Recovers Roblox platform chat messages from get-conversation-messages (and conversation listing) responses in the Cache, including salvage of truncated cache entries |
+| roblox_plugin.py          | Roblox          | Roblox Chat Users                     | 0.2     | Recovers Roblox chat participant details from chat responses in the Cache, with a possible account owner indicator |
+| roblox_plugin.py          | Roblox          | Roblox Private Messages               | 0.1     | Recovers Roblox private messages (inbox, sent, archive) from privatemessages.roblox.com responses in the Cache |
+| roblox_plugin.py          | Roblox          | Roblox Profile Visits                 | 0.1     | Recovers visits to Roblox user profile pages from browser history                                         |
 | storage_dump_plugin.py    | Data Dump       | History                               | 0.2     | Dumps History Records                                                                                     |
 | storage_dump_plugin.py    | Data Dump       | Downloads                             | 0.2     | Dumps Download Records                                                                                    |
 | storage_dump_plugin.py    | Data Dump       | Localstorage                          | 0.2     | Dumps Localstorage Records                                                                                |
 | storage_dump_plugin.py    | Data Dump       | Sessionstorage                        | 0.1     | Dumps Sessionstorage Records                                                                              |
+
+
+## Sample Data
+
+`samples/roblox` contains synthetic sample Roblox API response bodies (platform chat, legacy web chat, private messages and profile-visit history records) plus a runner which feeds them through the Roblox artifacts without needing a real browser capture:
+
+```
+python3 samples/roblox/run_samples.py
+```
+
+See `samples/roblox/README.md` for what the corpus covers.
 
 
 ## The CLI Tool
